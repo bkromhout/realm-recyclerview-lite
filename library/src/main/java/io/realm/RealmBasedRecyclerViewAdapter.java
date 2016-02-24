@@ -197,8 +197,8 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
                     if (!deltas.isEmpty()) {
                         // Try to be smarter here and detect cases where an item has simply moved.
                         if (deltas.size() == 2 && areDeltasFromDrag(deltas.get(0), deltas.get(1))) {
-                            notifyItemMoved(deltas.get(0).getOriginal().getPosition(),
-                                    deltas.get(1).getRevised().getPosition());
+//                            notifyItemMoved(deltas.get(0).getOriginal().getPosition(),
+//                                    deltas.get(1).getRevised().getPosition());
                         } else {
                             for (Delta delta : deltas) {
                                 if (delta.getType() == Delta.TYPE.INSERT) {
