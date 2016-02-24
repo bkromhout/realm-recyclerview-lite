@@ -51,6 +51,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     protected RealmResults<T> realmResults;
     protected List ids;
     protected Set<Integer> selectedPositions;
+    protected int lastSelectedPos = -1;
     protected StartDragListener startDragListener;
 
     private RealmChangeListener listener;
@@ -70,7 +71,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         this.inflater = LayoutInflater.from(context);
         this.listener = (!automaticUpdate) ? null : getRealmChangeListener();
 
-        selectedPositions = new HashSet<>();
+        selectedPositions = new HashSet<>(100);
 
         // If automatic updates aren't enabled, then animateResults should be false as well.
         this.animateResults = (automaticUpdate && animateResults);
@@ -208,6 +209,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
                                     notifyItemRangeRemoved(delta.getOriginal().getPosition(),
                                             delta.getOriginal().size());
                                 } else {
+                                    // TODO try to do just a notify item changed.
                                     notifyItemRangeChanged(delta.getRevised().getPosition(), delta.getRevised().size());
                                 }
                             }
@@ -252,11 +254,18 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * @param position Position of the item to set.
      */
     public final void setSelected(boolean selected, int position) {
+        if (position < 0 || position >= realmResults.size()) return;
+
         // Don't trigger a redraw if we've already selected the item.
         if (selected == selectedPositions.contains(position)) return;
 
-        if (selected) selectedPositions.add(position);
-        else selectedPositions.remove(position);
+        if (selected) {
+            selectedPositions.add(position);
+            lastSelectedPos = position;
+        } else {
+            selectedPositions.remove(position);
+            lastSelectedPos = -1;
+        }
 
         notifyItemChanged(position);
     }
@@ -266,7 +275,14 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * @param position Position of the item to toggle.
      */
     public final void toggleSelected(int position) {
-        if (!selectedPositions.remove(position)) selectedPositions.add(position);
+        if (position < 0 || position >= realmResults.size()) return;
+
+        if (!selectedPositions.remove(position)) {
+            selectedPositions.add(position);
+            lastSelectedPos = position;
+        } else {
+            lastSelectedPos = -1;
+        }
 
         notifyItemChanged(position);
     }
@@ -293,6 +309,30 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     }
 
     /**
+     * Extends the current selection from the last selected item to the given {@code position}. Does nothing if nothing
+     * is selected, the last item tapped was de-selected, or if {@code position} is already selected.
+     * @param position The position to extend the selection to.
+     */
+    public final void extendSelectionTo(int position) {
+        if (position < 0 || position >= realmResults.size() || selectedPositions.contains(position)
+                || lastSelectedPos == -1) return;
+
+        if (lastSelectedPos < position) {
+            // Ex: lastSelectedPos = 1, pos = 3. Need to select 2, 3.
+            for (int i = lastSelectedPos + 1; i <= position; i++) selectedPositions.add(i);
+
+            notifyItemRangeChanged(lastSelectedPos + 1, position - lastSelectedPos);
+            lastSelectedPos = -1;
+        } else {
+            // lastSelectedPos = 3, pos = 1. Need to select 1, 2.
+            for (int i = position; i < lastSelectedPos; i++) selectedPositions.add(i);
+
+            notifyItemRangeChanged(position, lastSelectedPos - position);
+            lastSelectedPos = -1;
+        }
+    }
+
+    /**
      * Select all of the items in the list.
      */
     public final void selectAll() {
@@ -305,9 +345,14 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * Clears any selections that may exist.
      */
     public final void clearSelections() {
+        // We definitely don't want to do any redrawing if we don't have anything selected!
+        if (selectedPositions.isEmpty()) return;
         // If there's only one item selected, we can be efficient and just redraw one view.
-        int oneItemPos = selectedPositions.size() == 1 ? (Integer) selectedPositions.toArray()[0] : -1;
+        int oneItemPos = selectedPositions.size() == 1 ? (int) selectedPositions.toArray()[0] : -1;
+
         selectedPositions.clear();
+        lastSelectedPos = -1;
+
         if (oneItemPos != -1) notifyItemChanged(oneItemPos);
         else notifyDataSetChanged();
     }
