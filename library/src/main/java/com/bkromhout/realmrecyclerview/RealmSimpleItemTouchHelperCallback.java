@@ -1,4 +1,4 @@
-package co.moonmonkeylabs.realmrecyclerview;
+package com.bkromhout.realmrecyclerview;
 
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;

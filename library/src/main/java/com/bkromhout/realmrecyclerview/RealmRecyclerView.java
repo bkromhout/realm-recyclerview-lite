@@ -1,4 +1,4 @@
-package co.moonmonkeylabs.realmrecyclerview;
+package com.bkromhout.realmrecyclerview;
 
 import android.content.Context;
 import android.content.res.TypedArray;
