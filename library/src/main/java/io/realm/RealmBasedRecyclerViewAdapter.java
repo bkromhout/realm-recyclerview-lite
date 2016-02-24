@@ -33,11 +33,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The base {@link RecyclerView.Adapter} that includes custom functionality to be used with the {@link
- * RealmRecyclerView}.
+ * The base {@link RecyclerView.Adapter} that includes custom functionality to be used with {@link RealmRecyclerView}.
  */
-public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject> extends
-        RecyclerView.Adapter<RealmViewHolder> implements RealmSimpleItemTouchHelperCallback.Listener {
+public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH extends RecyclerView.ViewHolder> extends
+        RecyclerView.Adapter<VH> implements RealmSimpleItemTouchHelperCallback.Listener {
 
     /**
      * Implemented by {@link RealmRecyclerView} so that we can call it to have it start a drag event.
@@ -129,16 +128,10 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject> exten
      * @param queryResults the new RealmResults coming from the new query.
      */
     public void updateRealmResults(RealmResults<T> queryResults) {
-        if (listener != null) {
-            if (realmResults != null) {
-                realmResults.realm.removeChangeListener(listener);
-            }
-        }
+        if (listener != null && realmResults != null) realmResults.realm.removeChangeListener(listener);
 
         realmResults = queryResults;
-        if (realmResults != null) {
-            realmResults.realm.addChangeListener(listener);
-        }
+        if (realmResults != null) realmResults.realm.addChangeListener(listener);
 
         // TODO update selected positions
         ids = getIdsOfRealmResults();
@@ -165,14 +158,13 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject> exten
         }
 
         if (animateExtraColumnIndex != -1) {
-            String rowPrimaryIdStr = (rowPrimaryId instanceof String)
-                    ? (String) rowPrimaryId : String.valueOf(rowPrimaryId);
+            String rowPrimaryIdStr = (rowPrimaryId instanceof String) ? (String) rowPrimaryId : String.valueOf(
+                    rowPrimaryId);
             if (animateExtraIdType == RealmFieldType.INTEGER) {
                 return rowPrimaryIdStr + String.valueOf(
                         realmResults.get(realmIndex).row.getLong(animateExtraColumnIndex));
             } else if (animateExtraIdType == RealmFieldType.STRING) {
-                return rowPrimaryIdStr +
-                        realmResults.get(realmIndex).row.getString(animateExtraColumnIndex);
+                return rowPrimaryIdStr + realmResults.get(realmIndex).row.getString(animateExtraColumnIndex);
             } else {
                 throw new IllegalStateException("Unknown animateExtraIdType");
             }
@@ -205,17 +197,11 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject> exten
                     if (!deltas.isEmpty()) {
                         for (Delta delta : deltas) {
                             if (delta.getType() == Delta.TYPE.INSERT) {
-                                notifyItemRangeInserted(
-                                        delta.getRevised().getPosition(),
-                                        delta.getRevised().size());
+                                notifyItemRangeInserted(delta.getRevised().getPosition(), delta.getRevised().size());
                             } else if (delta.getType() == Delta.TYPE.DELETE) {
-                                notifyItemRangeRemoved(
-                                        delta.getOriginal().getPosition(),
-                                        delta.getOriginal().size());
+                                notifyItemRangeRemoved(delta.getOriginal().getPosition(), delta.getOriginal().size());
                             } else {
-                                notifyItemRangeChanged(
-                                        delta.getRevised().getPosition(),
-                                        delta.getRevised().size());
+                                notifyItemRangeChanged(delta.getRevised().getPosition(), delta.getRevised().size());
                             }
                         }
                     }

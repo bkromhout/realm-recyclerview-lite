@@ -53,16 +53,13 @@ public class RealmRecyclerView extends FrameLayout implements RealmBasedRecycler
         recyclerView = (RecyclerView) findViewById(R.id.rrv_recycler_view);
         emptyContentContainer = (ViewStub) findViewById(R.id.rrv_empty_content_container);
 
-
         if (emptyViewId != 0) {
             emptyContentContainer.setLayoutResource(emptyViewId);
             emptyContentContainer.inflate();
         }
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
         recyclerView.setHasFixedSize(true);
-
         recyclerView.addOnScrollListener(
                 new RecyclerView.OnScrollListener() {
                     @Override
@@ -78,11 +75,6 @@ public class RealmRecyclerView extends FrameLayout implements RealmBasedRecycler
             touchHelper = new ItemTouchHelper(realmSimpleItemTouchHelperCallback);
             touchHelper.attachToRecyclerView(recyclerView);
         }
-    }
-
-    public int findFirstVisibleItemPosition() {
-        return ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
-
     }
 
     private void initAttrs(Context context, AttributeSet attrs) {
