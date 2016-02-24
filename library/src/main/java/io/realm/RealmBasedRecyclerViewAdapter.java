@@ -226,7 +226,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         // Check delta types.
         if (delta1.getType() != Delta.TYPE.DELETE || delta2.getType() != Delta.TYPE.INSERT) return false;
         // Check delta sizes.
-        if (delta1.getRevised().size() != 1 || delta2.getRevised().size() != 1) return false;
+        if (delta1.getOriginal().size() != 1 || delta2.getRevised().size() != 1) return false;
         // Check delta places.
         int expectedInsertPos = delta1.getOriginal().getPosition() + 1;
         if (delta2.getRevised().getPosition() != expectedInsertPos) return false;
