@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="RealmRecyclerView">
+        <attr name="rrvEmptyLayoutId" format="reference"/>
+        <attr name="rrvDragAndDrop" format="boolean"/>
+        <attr name="rrvDragStartTrigger">
+            <enum name="UserDefined" value="0"/>
+            <enum name="LongClick" value="1"/>
+        </attr>
+    </declare-styleable>
+</resources>
