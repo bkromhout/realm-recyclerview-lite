@@ -195,13 +195,21 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
 
                     // If the notification was for a different object/table (we'll have no deltas), don't do anything.
                     if (!deltas.isEmpty()) {
-                        for (Delta delta : deltas) {
-                            if (delta.getType() == Delta.TYPE.INSERT) {
-                                notifyItemRangeInserted(delta.getRevised().getPosition(), delta.getRevised().size());
-                            } else if (delta.getType() == Delta.TYPE.DELETE) {
-                                notifyItemRangeRemoved(delta.getOriginal().getPosition(), delta.getOriginal().size());
-                            } else {
-                                notifyItemRangeChanged(delta.getRevised().getPosition(), delta.getRevised().size());
+                        // Try to be smarter here and detect cases where an item has simply moved.
+                        if (deltas.size() == 2 && areDeltasFromDrag(deltas.get(0), deltas.get(1))) {
+                            notifyItemMoved(deltas.get(0).getOriginal().getPosition(),
+                                    deltas.get(1).getRevised().getPosition());
+                        } else {
+                            for (Delta delta : deltas) {
+                                if (delta.getType() == Delta.TYPE.INSERT) {
+                                    notifyItemRangeInserted(delta.getRevised().getPosition(),
+                                            delta.getRevised().size());
+                                } else if (delta.getType() == Delta.TYPE.DELETE) {
+                                    notifyItemRangeRemoved(delta.getOriginal().getPosition(),
+                                            delta.getOriginal().size());
+                                } else {
+                                    notifyItemRangeChanged(delta.getRevised().getPosition(), delta.getRevised().size());
+                                }
                             }
                         }
                     }
@@ -211,6 +219,19 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
                 }
             }
         };
+    }
+
+    private boolean areDeltasFromDrag(Delta delta1, Delta delta2) {
+        // TODO What if they're the other way around?
+        // Check delta types.
+        if (delta1.getType() != Delta.TYPE.DELETE || delta2.getType() != Delta.TYPE.INSERT) return false;
+        // Check delta sizes.
+        if (delta1.getRevised().size() != 1 || delta2.getRevised().size() != 1) return false;
+        // Check delta places.
+        int expectedInsertPos = delta1.getOriginal().getPosition() + 1;
+        if (delta2.getRevised().getPosition() != expectedInsertPos) return false;
+        // Lastly, make sure the delta lines are the same.
+        return delta1.getOriginal().getLines().get(0).equals(delta2.getRevised().getLines().get(0));
     }
 
     /**
@@ -224,7 +245,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
 
     /**
      * Set the selected state of the item at {@code position}.
-     * <p/>
+     * <p>
      * This method will call notifyItemChanged(position) when it completes; it is up to extending class to check if the
      * position is selected when onBindViewHolder gets called again and react accordingly.
      * @param selected Whether or not the item is selected.
@@ -294,7 +315,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     /**
      * Called when an item has been moved whilst dragging. Note that this is called EVERY time an item moves, not just
      * when it is "dropped".
-     * <p/>
+     * <p>
      * Only supported with type linearLayout and thus the realmResults can be accessed directly. If it is extended to
      * LinearLayoutWithHeaders, rowWrappers will have to be used.
      * @param draggingPos The position of the item being dragged.
