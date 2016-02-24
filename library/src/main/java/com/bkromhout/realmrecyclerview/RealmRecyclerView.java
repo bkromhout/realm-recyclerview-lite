@@ -70,8 +70,8 @@ public class RealmRecyclerView extends FrameLayout implements RealmBasedRecycler
         );
 
         if (dragAndDrop) {
-            realmSimpleItemTouchHelperCallback =
-                    new RealmSimpleItemTouchHelperCallback(dragAndDrop, dragTrigger == DragTrigger.LongClick);
+            realmSimpleItemTouchHelperCallback = new RealmSimpleItemTouchHelperCallback(
+                    dragTrigger == DragTrigger.LongClick);
             touchHelper = new ItemTouchHelper(realmSimpleItemTouchHelperCallback);
             touchHelper.attachToRecyclerView(recyclerView);
         }
@@ -173,5 +173,17 @@ public class RealmRecyclerView extends FrameLayout implements RealmBasedRecycler
      */
     public void smoothScrollToPosition(int position) {
         recyclerView.smoothScrollToPosition(position);
+    }
+
+    /*
+     * Expose the LinearLayoutManager.
+     */
+
+    /**
+     * Get the LinearLayoutManager attached to the RealmRecyclerView.
+     * @return LinearLayoutManager.
+     */
+    public LinearLayoutManager getLayoutManger() {
+        return (LinearLayoutManager) recyclerView.getLayoutManager();
     }
 }
