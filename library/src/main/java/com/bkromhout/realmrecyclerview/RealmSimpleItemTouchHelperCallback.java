@@ -35,10 +35,8 @@ public class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback
     }
 
     @Override
-    public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder dragged, RecyclerView.ViewHolder target) {
-        if (dragged.getItemViewType() != target.getItemViewType()) return false;
-        listener.onMove(dragged.getAdapterPosition(), target.getAdapterPosition());
-        return true;
+    public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder dragging, RecyclerView.ViewHolder target) {
+        return dragging.getItemViewType() == target.getItemViewType() && listener.onMove(dragging, target);
     }
 
     @Override
@@ -47,6 +45,6 @@ public class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback
     }
 
     public interface Listener {
-        void onMove(int draggingPos, int targetPos);
+        boolean onMove(RecyclerView.ViewHolder dragging, RecyclerView.ViewHolder target);
     }
 }

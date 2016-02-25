@@ -376,12 +376,13 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * <p>
      * Only supported with type linearLayout and thus the realmResults can be accessed directly. If it is extended to
      * LinearLayoutWithHeaders, rowWrappers will have to be used.
-     * @param draggingPos The position of the item being dragged.
-     * @param targetPos   The position of the item under the item being dragged.
+     * @param dragging The ViewHolder item being dragged.
+     * @param target   The ViewHolder item under the item being dragged.
      */
     @Override
-    public void onMove(int draggingPos, int targetPos) {
+    public boolean onMove(RecyclerView.ViewHolder dragging, RecyclerView.ViewHolder target) {
         // Left for the user to implement.
+        return true;
     }
 }
 
