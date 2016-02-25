@@ -10,11 +10,28 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+}
+
+task androidSourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+}
+
+android.libraryVariants.all { variant ->
+    task("javadoc${variant.name.capitalize()}", type: Javadoc) {
+        description "Generated Javadoc for $variant.name."
+        group 'Docs'
+        source = variant.javaCompile.source
+        ext.androidJar = files(project.android.getBootClasspath())
+        classpath = files(variant.javaCompile.classpath.files) + ext.androidJar
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
     }
 }
 
