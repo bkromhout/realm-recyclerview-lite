@@ -382,7 +382,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     @Override
     public boolean onMove(RecyclerView.ViewHolder dragging, RecyclerView.ViewHolder target) {
         // Left for the user to implement.
-        return true;
+        return false;
     }
 }
 
