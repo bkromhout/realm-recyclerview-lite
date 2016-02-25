@@ -310,18 +310,25 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
 
     /**
      * Extends the current selection from the last selected item to the given {@code position}. If {@code position} is
-     * already selected, de-selects it. Does nothing if nothing is selected or the last item tapped was de-selected.
+     * already selected, de-selects it. If nothing is selected or the last item tapped was de-selected, just selects
+     * {@code position}.
      * @param position The position to extend the selection to.
      */
     public final void extendSelectionTo(int position) {
         if (position < 0 || position >= realmResults.size()) return;
-        // If this is already selected, de-select it.
+
         if (selectedPositions.contains(position)) {
+            // If this is already selected, de-select it.
             selectedPositions.remove(position);
             notifyItemChanged(position);
             lastSelectedPos = -1;
+            return;
+        } else if (lastSelectedPos == -1) {
+            // If we don't have a previously selected position, just select this one.
+            selectedPositions.add(position);
+            notifyItemChanged(position);
+            return;
         }
-        if (lastSelectedPos == -1) return;
 
         if (lastSelectedPos < position) {
             // Ex: lastSelectedPos = 1, pos = 3. Need to select 2, 3.
