@@ -53,16 +53,13 @@ public class RealmRecyclerView extends FrameLayout implements RealmBasedRecycler
         recyclerView = (RecyclerView) findViewById(R.id.rrv_recycler_view);
         emptyContentContainer = (ViewStub) findViewById(R.id.rrv_empty_content_container);
 
-
         if (emptyViewId != 0) {
             emptyContentContainer.setLayoutResource(emptyViewId);
             emptyContentContainer.inflate();
         }
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
         recyclerView.setHasFixedSize(true);
-
         recyclerView.addOnScrollListener(
                 new RecyclerView.OnScrollListener() {
                     @Override
@@ -73,16 +70,11 @@ public class RealmRecyclerView extends FrameLayout implements RealmBasedRecycler
         );
 
         if (dragAndDrop) {
-            realmSimpleItemTouchHelperCallback =
-                    new RealmSimpleItemTouchHelperCallback(dragAndDrop, dragTrigger == DragTrigger.LongClick);
+            realmSimpleItemTouchHelperCallback = new RealmSimpleItemTouchHelperCallback(
+                    dragTrigger == DragTrigger.LongClick);
             touchHelper = new ItemTouchHelper(realmSimpleItemTouchHelperCallback);
             touchHelper.attachToRecyclerView(recyclerView);
         }
-    }
-
-    public int findFirstVisibleItemPosition() {
-        return ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
-
     }
 
     private void initAttrs(Context context, AttributeSet attrs) {
@@ -181,5 +173,17 @@ public class RealmRecyclerView extends FrameLayout implements RealmBasedRecycler
      */
     public void smoothScrollToPosition(int position) {
         recyclerView.smoothScrollToPosition(position);
+    }
+
+    /*
+     * Expose the LinearLayoutManager.
+     */
+
+    /**
+     * Get the LinearLayoutManager attached to the RealmRecyclerView.
+     * @return LinearLayoutManager.
+     */
+    public LinearLayoutManager getLayoutManger() {
+        return (LinearLayoutManager) recyclerView.getLayoutManager();
     }
 }

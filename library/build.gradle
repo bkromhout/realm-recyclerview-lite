@@ -10,6 +10,7 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -18,9 +19,25 @@ android {
     }
 }
 
+task androidSourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+}
+
+android.libraryVariants.all { variant ->
+    task("javadoc${variant.name.capitalize()}", type: Javadoc) {
+        description "Generated Javadoc for $variant.name."
+        group 'Docs'
+        source = variant.javaCompile.source
+        ext.androidJar = files(project.android.getBootClasspath())
+        classpath = files(variant.javaCompile.classpath.files) + ext.androidJar
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
+    }
+}
+
 dependencies {
-    compile fileTree(dir: 'libs', include: ['diffutils-1.2.1.jar'])
-    compile 'com.android.support:design:23.1.1'
-    compile 'com.android.support:recyclerview-v7:23.1.1'
+    compile 'com.android.support:design:23.2.0'
+    compile 'com.android.support:recyclerview-v7:23.2.0'
     compile 'io.realm:realm-android:0.87.4'
+    compile 'com.github.bkromhout:java-diff-utils:2.0.0'
 }
