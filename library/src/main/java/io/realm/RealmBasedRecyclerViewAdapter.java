@@ -134,7 +134,8 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         realmResults = queryResults;
         if (realmResults != null) realmResults.realm.addChangeListener(listener);
 
-        // TODO update selected positions
+        selectedPositions.clear();
+        lastSelectedPos = -1;
         ids = getIdsOfRealmResults();
         notifyDataSetChanged();
     }
@@ -178,7 +179,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         return new RealmChangeListener() {
             @Override
             public void onChange() {
-                clearSelections(); // TODO make better?
+                clearSelections();
 
                 if (animateResults && ids != null && !ids.isEmpty()) {
                     List newIds = getIdsOfRealmResults();
@@ -382,11 +383,20 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     }
 
     /**
-     * Called when an item has been moved whilst dragging. Note that this is called EVERY time an item moves, not just
-     * when it is "dropped".
+     * Called when an item has been moved whilst dragging. There are two things that overriding classes must
+     * consider:<br/>-This is called EVERY time an item "moves", not just when it is "dropped".<br/>-An item technically
+     * "moves" each time it is dragged over another item (as in, when the two items should appear to swap); however, if
+     * a drag happens very fast this tends to not get called until the dragged item has already moved past more than one
+     * target item.
      * <p>
-     * Only supported with type linearLayout and thus the realmResults can be accessed directly. If it is extended to
-     * LinearLayoutWithHeaders, rowWrappers will have to be used.
+     * Put together, this means that the following three cases should be considered for best performance:<br/>1: The
+     * dragged item moves past one item (the items swap) -> Swap the values of whatever field is used to maintain
+     * order.<br/>2: The dragged item has moved up past several items -> Recalculate the order field's value for the
+     * dragging item.<br/>3: The dragged item has moved down past several items -> Recalculate the order field's value
+     * for the dragging item.
+     * <p>
+     * If these three cases are handled well (specifically, the latter two do not cause the whole list's order field
+     * values to be recalculated), then dragging items should be nearly (if not completely) lag free.
      * @param dragging The ViewHolder item being dragged.
      * @param target   The ViewHolder item under the item being dragged.
      */
