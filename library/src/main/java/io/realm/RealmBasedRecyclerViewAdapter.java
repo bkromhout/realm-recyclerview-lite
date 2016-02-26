@@ -197,9 +197,8 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
                     // If the notification was for a different object/table (we'll have no deltas), don't do anything.
                     if (!deltas.isEmpty()) {
                         // Try to be smarter here and detect cases where an item has simply moved.
-                        if (deltas.size() == 2 && areDeltasFromDrag(deltas.get(0), deltas.get(1))) {
-//                            notifyItemMoved(deltas.get(0).getOriginal().getPosition(),
-//                                    deltas.get(1).getRevised().getPosition());
+                        if (deltas.size() == 2 && areDeltasFromMove(deltas.get(0), deltas.get(1))) {
+                            // TODO might call notifyItemMoved ourselves... we'll see.
                         } else {
                             for (Delta delta : deltas) {
                                 if (delta.getType() == Delta.TYPE.INSERT) {
@@ -209,7 +208,6 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
                                     notifyItemRangeRemoved(delta.getOriginal().getPosition(),
                                             delta.getOriginal().size());
                                 } else {
-                                    // TODO try to do just a notify item changed.
                                     notifyItemRangeChanged(delta.getRevised().getPosition(), delta.getRevised().size());
                                 }
                             }
@@ -223,17 +221,17 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         };
     }
 
-    private boolean areDeltasFromDrag(Delta delta1, Delta delta2) {
-        // TODO What if they're the other way around?
-        // Check delta types.
-        if (delta1.getType() != Delta.TYPE.DELETE || delta2.getType() != Delta.TYPE.INSERT) return false;
-        // Check delta sizes.
-        if (delta1.getOriginal().size() != 1 || delta2.getRevised().size() != 1) return false;
-        // Check delta places.
-        int expectedInsertPos = delta1.getOriginal().getPosition() + 1;
-        if (delta2.getRevised().getPosition() != expectedInsertPos) return false;
-        // Lastly, make sure the delta lines are the same.
-        return delta1.getOriginal().getLines().get(0).equals(delta2.getRevised().getLines().get(0));
+    private boolean areDeltasFromMove(Delta delta1, Delta delta2) {
+        // Check delta types, make sure we have one insert and one delete.
+        if (!((delta1.getType() == Delta.TYPE.INSERT && delta2.getType() == Delta.TYPE.DELETE)
+                || (delta1.getType() == Delta.TYPE.DELETE && delta2.getType() == Delta.TYPE.INSERT))) return false;
+        // Figure out which is which.
+        Delta insert = delta1.getType() == Delta.TYPE.INSERT ? delta1 : delta2;
+        Delta delete = delta2.getType() == Delta.TYPE.DELETE ? delta2 : delta1;
+        // Make sure they only affect one "line".
+        if (delete.getOriginal().size() != 1 || insert.getRevised().size() != 1) return false;
+        // And make sure that that "line" has the same content.
+        return delete.getOriginal().getLines().get(0).equals(insert.getRevised().getLines().get(0));
     }
 
     /**
