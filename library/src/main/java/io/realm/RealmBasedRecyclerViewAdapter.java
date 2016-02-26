@@ -198,7 +198,13 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
                     if (!deltas.isEmpty()) {
                         // Try to be smarter here and detect cases where an item has simply moved.
                         if (deltas.size() == 2 && areDeltasFromMove(deltas.get(0), deltas.get(1))) {
-                            // TODO might call notifyItemMoved ourselves... we'll see.
+                            if (deltas.get(0).getType() == Delta.TYPE.DELETE) {
+                                notifyItemMoved(deltas.get(0).getOriginal().getPosition(),
+                                        deltas.get(1).getRevised().getPosition());
+                            } else {
+                                notifyItemMoved(deltas.get(1).getOriginal().getPosition(),
+                                        deltas.get(0).getRevised().getPosition());
+                            }
                         } else {
                             for (Delta delta : deltas) {
                                 if (delta.getType() == Delta.TYPE.INSERT) {
@@ -221,6 +227,13 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         };
     }
 
+    /**
+     * Check {@code delta1} and {@code delta2} to determine if, together, they represent a situation where an item has
+     * simply moved to somewhere else in the list.
+     * @param delta1 A delta.
+     * @param delta2 Another delta.
+     * @return True if the deltas represent an item having moved, otherwise false.
+     */
     private boolean areDeltasFromMove(Delta delta1, Delta delta2) {
         // Check delta types, make sure we have one insert and one delete.
         if (!((delta1.getType() == Delta.TYPE.INSERT && delta2.getType() == Delta.TYPE.DELETE)
