@@ -383,6 +383,13 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     }
 
     /**
+     * Calls {@code notifyItemChanged()} on each of the currently selected positions.
+     */
+    public void notifySelectedItemsChanged() {
+        for (Integer i : selectedPositions) notifyItemChanged(i);
+    }
+
+    /**
      * Called when an item has been moved whilst dragging. There are two things that overriding classes must
      * consider:<br/>-This is called EVERY time an item "moves", not just when it is "dropped".<br/>-An item technically
      * "moves" each time it is dragged over another item (as in, when the two items should appear to swap); however, if
