@@ -303,7 +303,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * Get the number of selected items.
      * @return Number of selected items.
      */
-    public final int getNumSelected() {
+    public final int getSelectedItemCount() {
         return selectedPositions.size();
     }
 
