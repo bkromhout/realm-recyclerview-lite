@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'realm-android'
 
 android {
     compileSdkVersion 23
@@ -8,7 +9,7 @@ android {
         minSdkVersion 9
         targetSdkVersion 23
         versionCode 1
-        versionName "1.1"
+        versionName "1.2"
     }
 
     buildTypes {
@@ -38,6 +39,5 @@ android.libraryVariants.all { variant ->
 dependencies {
     compile 'com.android.support:design:23.2.0'
     compile 'com.android.support:recyclerview-v7:23.2.0'
-    compile 'io.realm:realm-android:0.87.5'
     compile 'com.github.bkromhout:java-diff-utils:2.0.0'
 }
