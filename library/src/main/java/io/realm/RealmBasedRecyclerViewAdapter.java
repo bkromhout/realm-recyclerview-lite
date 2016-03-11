@@ -420,8 +420,9 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * @param out Bundle to save state to.
      */
     public final void saveInstanceState(Bundle out) {
-        if (out == null) return;
-        out.putSerializable(SEL_POSITIONS_KEY, selectedPositions);
+        if (out != null) {
+            out.putIntegerArrayList(SEL_POSITIONS_KEY, new ArrayList<>(selectedPositions));
+        }
     }
 
     /**
@@ -430,11 +431,13 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * @see #saveInstanceState(Bundle)
      */
     public final void restoreInstanceState(Bundle in) {
-        if (in != null && in.containsKey(SEL_POSITIONS_KEY)) {
-            //noinspection unchecked
-            selectedPositions = (HashSet<Integer>) in.getSerializable(SEL_POSITIONS_KEY);
-            if (selectedPositions == null) selectedPositions = new HashSet<>();
-            else notifySelectedItemsChanged();
+        if (in != null) {
+            ArrayList<Integer> temp = in.getIntegerArrayList(SEL_POSITIONS_KEY);
+            if (temp == null) selectedPositions = new HashSet<>();
+            else {
+                selectedPositions = new HashSet<>(temp);
+                notifySelectedItemsChanged();
+            }
         }
     }
 }
