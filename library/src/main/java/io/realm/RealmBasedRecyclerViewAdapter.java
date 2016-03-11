@@ -420,8 +420,9 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * @param out Bundle to save state to.
      */
     public final void saveInstanceState(Bundle out) {
-        if (out == null) return;
-        out.putIntegerArrayList(SEL_POSITIONS_KEY, new ArrayList<>(selectedPositions));
+        if (out != null) {
+            out.putIntegerArrayList(SEL_POSITIONS_KEY, new ArrayList<>(selectedPositions));
+        }
     }
 
     /**
