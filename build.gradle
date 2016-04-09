@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.1.0-alpha1'
+        classpath 'com.android.tools.build:gradle:2.1.0-alpha5'
         classpath 'com.novoda:bintray-release:0.3.4' // clean build bintrayUpload -PdryRun={true|false}
         classpath "io.realm:realm-gradle-plugin:0.88.3"
     }
@@ -56,48 +56,49 @@ allprojects {
         options.addStringOption('encoding', 'UTF-8')
     }
 
-subprojects {
-    group = GROUP_NAME
-    version = VERSION_NAME
+    subprojects {
+        group = GROUP_NAME
+        version = VERSION_NAME
 
-    if (IS_UPLOADING && project.name in ['library']) {
-        println project.name
-        apply plugin: 'maven'
+        if (IS_UPLOADING && project.name in ['library']) {
+            println project.name
+            apply plugin: 'maven'
 
-        gradle.taskGraph.whenReady { taskGraph ->
-            taskGraph.getAllTasks().find{it.path == ":$project.name:generatePomFileForMavenPublication"}.doLast {
-                file("build/publications/maven/pom-default.xml").delete()
-                pom {
-                    //noinspection GroovyAssignabilityCheck
-                    project {
-                        name "$project.name"
-                        artifactId "$project.name"
-                        packaging project.name in [] ? 'jar' : 'aar'
-                        description DESCRIPTION
-                        url SITE_URL
-                        version VERSION_NAME
+            gradle.taskGraph.whenReady { taskGraph ->
+                taskGraph.getAllTasks().find { it.path == ":$project.name:generatePomFileForMavenPublication" }.doLast {
+                    file("build/publications/maven/pom-default.xml").delete()
+                    pom {
+                        //noinspection GroovyAssignabilityCheck
+                        project {
+                            name "$project.name"
+                            artifactId "$project.name"
+                            packaging project.name in [] ? 'jar' : 'aar'
+                            description DESCRIPTION
+                            url SITE_URL
+                            version VERSION_NAME
 
-                        scm {
-                            url GIT_URL
-                            connection GIT_URL
-                            developerConnection GIT_URL
-                        }
+                            scm {
+                                url GIT_URL
+                                connection GIT_URL
+                                developerConnection GIT_URL
+                            }
 
-                        licenses {
-                            license {
-                                name 'Apache-2.0'
+                            licenses {
+                                license {
+                                    name 'Apache-2.0'
+                                }
+                            }
+
+                            developers {
+                                developer {
+                                    id 'bkromhout'
+                                    name 'Brenden Kromhout'
+                                    email 'bkromhout@gmail.com'
+                                }
                             }
                         }
-
-                        developers {
-                            developer {
-                                id 'bkromhout'
-                                name 'Brenden Kromhout'
-                                email 'bkromhout@gmail.com'
-                            }
-                        }
-                    }
-                }.writeTo("build/publications/maven/pom-default.xml")
+                    }.writeTo("build/publications/maven/pom-default.xml")
+                }
             }
         }
     }
