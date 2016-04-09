@@ -1,15 +1,20 @@
 apply plugin: 'com.android.library'
 apply plugin: 'realm-android'
+apply plugin: 'bintray-release'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion '23.0.2'
+    compileSdkVersion COMPILE_SDK
+    buildToolsVersion BUILD_TOOLS
 
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 23
-        versionCode 1
-        versionName "1.4.2"
+        versionCode VERSION_CODE
+        versionName VERSION_NAME
+    }
+
+    lintOptions {
+        warning 'Instantiatable'
     }
 
     buildTypes {
@@ -20,24 +25,20 @@ android {
     }
 }
 
-task androidSourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-}
-
-android.libraryVariants.all { variant ->
-    task("javadoc${variant.name.capitalize()}", type: Javadoc) {
-        description "Generated Javadoc for $variant.name."
-        group 'Docs'
-        source = variant.javaCompile.source
-        ext.androidJar = files(project.android.getBootClasspath())
-        classpath = files(variant.javaCompile.classpath.files) + ext.androidJar
-        exclude '**/BuildConfig.java'
-        exclude '**/R.java'
-    }
-}
-
 dependencies {
     compile 'com.android.support:design:23.3.0'
     compile 'com.android.support:recyclerview-v7:23.3.0'
     compile 'com.github.bkromhout:java-diff-utils:2.0.0'
+}
+
+publish {
+    userOrg = BINTRAY_USER
+    groupId = GROUP_NAME
+    artifactId = 'realm-recyclerview-lite'
+    version = VERSION_NAME
+    description = DESCRIPTION
+    website = SITE_URL
+    bintrayUser = BINTRAY_USER
+    bintrayKey = BINTRAY_KEY
+    licences = ['Apache-2.0']
 }

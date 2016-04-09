@@ -1,18 +1,104 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-
 buildscript {
     repositories {
         jcenter()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.1.0-alpha1'
+        classpath 'com.novoda:bintray-release:0.3.4' // clean build bintrayUpload -PdryRun={true|false}
         classpath "io.realm:realm-gradle-plugin:0.88.3"
     }
+}
+
+ext {
+    if (file("private.properties").exists()) {
+        Properties props = new Properties()
+        props.load(new FileInputStream(file("private.properties")))
+        BINTRAY_KEY = props.getProperty('BINTRAY_KEY')
+    } else {
+        BINTRAY_KEY = ""
+    }
+    VERSION_NAME = version()
+    VERSION_CODE = versionCode().toInteger()
+    SITE_URL = 'https://github.com/bkromhout/realm-recyclerview-lite'
+    GIT_URL = 'https://github.com/bkromhout/realm-recyclerview-lite.git'
+    BINTRAY_USER = 'bkromhout'
+    GROUP_NAME = 'com.bkromhout'
+    DESCRIPTION = 'Yet another Realm RecyclerView. Supports drag-and-drop as well as a few other features.'
+    COMPILE_SDK = 23
+    BUILD_TOOLS = '23.0.2'
+    IS_UPLOADING = project.getGradle().startParameter.taskNames.any{it.contains('bintrayUpload')}
+}
+
+def String version() {
+    def versionPropsFile = file('version.properties')
+    def Properties versionProps = new Properties()
+    versionProps.load(new FileInputStream(versionPropsFile))
+
+    return versionProps['major'] + "." + versionProps['minor'] + "." + versionProps['patch']
+}
+
+def String versionCode() {
+    def versionPropsFile = file('version.properties')
+    def Properties versionProps = new Properties()
+    versionProps.load(new FileInputStream(versionPropsFile))
+
+    return versionProps['code']
 }
 
 allprojects {
     repositories {
         jcenter()
         maven { url "https://jitpack.io" }
+    }
+
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+        options.addStringOption('encoding', 'UTF-8')
+    }
+
+subprojects {
+    group = GROUP_NAME
+    version = VERSION_NAME
+
+    if (IS_UPLOADING && project.name in ['library']) {
+        println project.name
+        apply plugin: 'maven'
+
+        gradle.taskGraph.whenReady { taskGraph ->
+            taskGraph.getAllTasks().find{it.path == ":$project.name:generatePomFileForMavenPublication"}.doLast {
+                file("build/publications/maven/pom-default.xml").delete()
+                pom {
+                    //noinspection GroovyAssignabilityCheck
+                    project {
+                        name "$project.name"
+                        artifactId "$project.name"
+                        packaging project.name in [] ? 'jar' : 'aar'
+                        description DESCRIPTION
+                        url SITE_URL
+                        version VERSION_NAME
+
+                        scm {
+                            url GIT_URL
+                            connection GIT_URL
+                            developerConnection GIT_URL
+                        }
+
+                        licenses {
+                            license {
+                                name 'Apache-2.0'
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                id 'bkromhout'
+                                name 'Brenden Kromhout'
+                                email 'bkromhout@gmail.com'
+                            }
+                        }
+                    }
+                }.writeTo("build/publications/maven/pom-default.xml")
+            }
+        }
     }
 }
