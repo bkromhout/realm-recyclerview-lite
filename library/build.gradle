@@ -9,7 +9,7 @@ android {
         minSdkVersion 9
         targetSdkVersion 23
         versionCode 1
-        versionName "1.4.1"
+        versionName "1.4.2"
     }
 
     buildTypes {
@@ -37,7 +37,7 @@ android.libraryVariants.all { variant ->
 }
 
 dependencies {
-    compile 'com.android.support:design:23.2.1'
-    compile 'com.android.support:recyclerview-v7:23.2.1'
+    compile 'com.android.support:design:23.3.0'
+    compile 'com.android.support:recyclerview-v7:23.3.0'
     compile 'com.github.bkromhout:java-diff-utils:2.0.0'
 }
