@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="define_rrv_lite"></string>
+	<string name="define_rrvl"></string>
 	<!-- Author section -->
-	<string name="library_rrv_lite_author">Brenden Kromhout</string>
-	<string name="library_rrv_lite_authorWebsite">https://github.com/bkromhout</string>
+	<string name="library_rrvl_author">Brenden Kromhout</string>
+	<string name="library_rrvl_authorWebsite">https://github.com/bkromhout</string>
 	<!-- Library section -->
-	<string name="library_rrv_lite_libraryName">realm-recyclerview-lite</string>
-	<string name="library_rrv_lite_libraryDescription">Yet another Realm RecyclerView. Supports drag-and-drop and a few other features.</string>
-	<string name="library_rrv_lite_libraryWebsite">https://github.com/bkromhout/realm-recyclerview-lite</string>
-	<string name="library_rrv_lite_libraryVersion">1.4.2</string>
+	<string name="library_rrvl_libraryName">realm-recyclerview-lite</string>
+	<string name="library_rrvl_libraryDescription">Yet another Realm RecyclerView. Supports drag-and-drop and a few other features.</string>
+	<string name="library_rrvl_libraryWebsite">https://github.com/bkromhout/realm-recyclerview-lite</string>
+	<string name="library_rrvl_libraryVersion">1.5.0</string>
 	<!-- OpenSource section -->
-	<string name="library_rrv_lite_isOpenSource">true</string>
-	<string name="library_rrv_lite_repositoryLink">https://github.com/bkromhout/realm-recyclerview-lite</string>
+	<string name="library_rrvl_isOpenSource">true</string>
+	<string name="library_rrvl_repositoryLink">https://github.com/bkromhout/realm-recyclerview-lite</string>
 	<!-- ClassPath for autoDetect section -->
-	<string name="library_rrv_lite_classPath">com.bkromhout.realmrecyclerview</string>
+	<string name="library_rrvl_classPath">com.bkromhout.rrvl</string>
 	<!-- License section -->
-	<string name="library_rrv_lite_licenseId">apache_2_0</string>
+	<string name="library_rrvl_licenseId">apache_2_0</string>
 	<!-- Custom variables section -->
 </resources>

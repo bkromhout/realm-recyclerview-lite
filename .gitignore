@@ -1,10 +1,51 @@
-.gradle
+# C temp files
+*.c~
+
+# Java generated files
+*.class
+
+# Generated files/folders
+bin/
+gen/
+build/
+out/
+.gradle/
+.navigation/
+
+# Local configuration file (sdk path, etc)
 local.properties
-/.idea/workspace.xml
-/.idea/libraries
+private.properties
+
+# Eclipse project files
+.classpath
+.buildpath
+.project
+
+# Mac Junk
 .DS_Store
-build
-/captures
-.idea
+
+# Intellij project files
 *.iml
-local.properties
+*.ipr
+*.iws
+.idea/
+
+# Android
+*.apk
+*.ap_
+*.dex
+*.keystore
+*.jks
+keystore.properties
+/captures
+
+# Proguard
+proguard/
+mapping.txt
+
+# Node.js Stuff
+node_modules/
+bower_components/
+
+# Misc
+dev-notes/

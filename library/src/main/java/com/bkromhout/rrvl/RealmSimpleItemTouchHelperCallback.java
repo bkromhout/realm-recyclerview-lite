@@ -1,4 +1,4 @@
-package com.bkromhout.realmrecyclerview;
+package com.bkromhout.rrvl;
 
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;

@@ -1,4 +1,4 @@
-package com.bkromhout.realmrecyclerview;
+package com.bkromhout.rrvl;
 
 import android.content.Context;
 import android.content.res.TypedArray;
