@@ -34,7 +34,7 @@ dependencies {
 publish {
     userOrg = BINTRAY_USER
     groupId = GROUP_NAME
-    artifactId = 'realm-recyclerview-lite'
+    artifactId = ARTIFACT_NAME
     version = VERSION_NAME
     description = DESCRIPTION
     website = SITE_URL

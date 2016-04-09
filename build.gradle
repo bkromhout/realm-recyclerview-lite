@@ -23,6 +23,7 @@ ext {
     GIT_URL = 'https://github.com/bkromhout/realm-recyclerview-lite.git'
     BINTRAY_USER = 'bkromhout'
     GROUP_NAME = 'com.bkromhout'
+    ARTIFACT_NAME = 'realm-recyclerview-lite'
     DESCRIPTION = 'Yet another Realm RecyclerView. Supports drag-and-drop as well as a few other features.'
     COMPILE_SDK = 23
     BUILD_TOOLS = '23.0.2'
@@ -71,7 +72,7 @@ allprojects {
                         //noinspection GroovyAssignabilityCheck
                         project {
                             name "$project.name"
-                            artifactId "$project.name"
+                            artifactId ARTIFACT_NAME
                             packaging project.name in [] ? 'jar' : 'aar'
                             description DESCRIPTION
                             url SITE_URL
