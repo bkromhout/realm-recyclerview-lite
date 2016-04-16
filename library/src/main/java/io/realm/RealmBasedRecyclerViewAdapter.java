@@ -208,15 +208,15 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
                                         deltas.get(0).getRevised().getPosition());
                             }
                         } else {
-                            for (Delta delta : deltas) {
-                                if (delta.getType() == Delta.TYPE.INSERT) {
-                                    notifyItemRangeInserted(delta.getRevised().getPosition(),
-                                            delta.getRevised().size());
-                                } else if (delta.getType() == Delta.TYPE.DELETE) {
-                                    notifyItemRangeRemoved(delta.getOriginal().getPosition(),
-                                            delta.getOriginal().size());
+                            // Loop through deltas backwards and send notifications for them.
+                            for (int i = deltas.size() - 1; i >= 0; i--) {
+                                Delta d = deltas.get(i);
+                                if (d.getType() == Delta.TYPE.INSERT) {
+                                    notifyItemRangeInserted(d.getOriginal().getPosition(), d.getRevised().size());
+                                } else if (d.getType() == Delta.TYPE.DELETE) {
+                                    notifyItemRangeRemoved(d.getOriginal().getPosition(), d.getOriginal().size());
                                 } else {
-                                    notifyItemRangeChanged(delta.getRevised().getPosition(), delta.getRevised().size());
+                                    notifyItemRangeChanged(d.getRevised().getPosition(), d.getRevised().size());
                                 }
                             }
                         }
