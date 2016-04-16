@@ -1,11 +1,8 @@
-# realm-recyclerview-slim
+# realm-recyclerview-lite
 
 This library is based off of [thorbenprimke/realm-recyclerview](https://github.com/thorbenprimke/realm-recyclerview), and comes from a fork I made of that library.
 
 I'm still in the process of developing it, but the short story here is that the original, while amazing, didn't have some functionality I wanted. I originally was attempting to add those features in my own fork of the library, but some of the extra features I wasn't using were making the process difficult, so I decided to split this off to a separate library so that I could remove those extra features.
-
-Once I have the functionality I desire implemented and working, I will hopefully be able to find a way to port them back to my fork of realm-recyclerview and then open a pull request on the original.
-
 
 ## License
 ```
