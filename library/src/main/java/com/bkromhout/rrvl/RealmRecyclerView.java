@@ -151,28 +151,15 @@ public class RealmRecyclerView extends FrameLayout implements RealmBasedRecycler
     }
 
     /*
-     * Expose public RecyclerView methods to the RealmRecyclerView.
+     * Expose the RecyclerView.
      */
 
     /**
-     * @see RecyclerView#setItemViewCacheSize(int)
+     * Get the actual RecyclerView which backs this {@link RealmRecyclerView}.
+     * @return Internal RecyclerView.
      */
-    public void setItemViewCacheSize(int size) {
-        recyclerView.setItemViewCacheSize(size);
-    }
-
-    /**
-     * @see RecyclerView#scrollToPosition(int)
-     */
-    public void scrollToPosition(int position) {
-        recyclerView.scrollToPosition(position);
-    }
-
-    /**
-     * @see RecyclerView#smoothScrollToPosition(int)
-     */
-    public void smoothScrollToPosition(int position) {
-        recyclerView.smoothScrollToPosition(position);
+    public RecyclerView getRecyclerView() {
+        return recyclerView;
     }
 
     /*
