@@ -198,8 +198,10 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
 
                     // If the notification was for a different object/table (we'll have no deltas), don't do anything.
                     if (!deltas.isEmpty()) {
+                        /* See https://github.com/bkromhout/realm-recyclerview-lite/issues/4#issuecomment-210951358 for
+                        an explanation as to why this remains here. */
                         // Try to be smarter here and detect cases where an item has simply moved.
-                        if (deltas.size() == 2 && areDeltasFromMove(deltas.get(0), deltas.get(1))) {
+                        /*if (deltas.size() == 2 && areDeltasFromMove(deltas.get(0), deltas.get(1))) {
                             if (deltas.get(0).getType() == Delta.TYPE.DELETE) {
                                 notifyItemMoved(deltas.get(0).getOriginal().getPosition(),
                                         deltas.get(1).getRevised().getPosition());
@@ -207,7 +209,9 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
                                 notifyItemMoved(deltas.get(1).getOriginal().getPosition(),
                                         deltas.get(0).getRevised().getPosition());
                             }
-                        } else {
+                        } else {*/
+
+                        if (!(deltas.size() == 2 && areDeltasFromMove(deltas.get(0), deltas.get(1)))) {
                             // Loop through deltas backwards and send notifications for them.
                             for (int i = deltas.size() - 1; i >= 0; i--) {
                                 Delta d = deltas.get(i);
@@ -260,7 +264,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
 
     /**
      * Set the selected state of the item at {@code position}.
-     * <p/>
+     * <p>
      * This method will call notifyItemChanged(position) when it completes; it is up to extending class to check if the
      * position is selected when onBindViewHolder gets called again and react accordingly.
      * @param selected Whether or not the item is selected.
@@ -396,13 +400,13 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * "moves" each time it is dragged over another item (as in, when the two items should appear to swap); however, if
      * a drag happens very fast this tends to not get called until the dragged item has already moved past more than one
      * target item.
-     * <p/>
+     * <p>
      * Put together, this means that the following three cases should be considered for best performance:<br/>1: The
      * dragged item moves past one item (the items swap) -> Swap the values of whatever field is used to maintain
      * order.<br/>2: The dragged item has moved up past several items -> Recalculate the order field's value for the
      * dragging item.<br/>3: The dragged item has moved down past several items -> Recalculate the order field's value
      * for the dragging item.
-     * <p/>
+     * <p>
      * If these three cases are handled well (specifically, the latter two do not cause the whole list's order field
      * values to be recalculated), then dragging items should be nearly (if not completely) lag free.
      * @param dragging The ViewHolder item being dragged.
