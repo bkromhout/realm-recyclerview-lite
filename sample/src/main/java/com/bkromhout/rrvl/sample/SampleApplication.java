@@ -14,7 +14,7 @@ public class SampleApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Realm.setDefaultConfiguration(new RealmConfiguration.Builder(this).build());
+        Realm.setDefaultConfiguration(new RealmConfiguration.Builder(this).deleteRealmIfMigrationNeeded().build());
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         try (Realm realm = Realm.getDefaultInstance()) {
