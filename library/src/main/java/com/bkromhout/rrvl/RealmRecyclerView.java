@@ -65,7 +65,10 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
             emptyContentContainer.inflate();
         }
 
-        // Set LinearLayoutManager, override the onLayoutChildren() method if
+        // Only show system scrollbar if we don't have a fast scroller.
+        recyclerView.setVerticalScrollBarEnabled(fastScrollMode == FastScrollMode.Off);
+
+        // Set LinearLayoutManager, override the onLayoutChildren() method if we have a fast scroller.
         recyclerView.setLayoutManager(fastScrollMode == FastScrollMode.Off ? new LinearLayoutManager(getContext()) :
                 new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false) {
                     @Override
