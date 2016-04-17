@@ -14,5 +14,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:rrvlDragAndDrop="true"
-            app:rrvlFastScrollMode="Handle_Bubble"/>
+            app:rrvlFastScrollMode="Handle_Bubble"
+            app:rrvlAutoHideFastScrollHandle="true"/>
 </RelativeLayout>

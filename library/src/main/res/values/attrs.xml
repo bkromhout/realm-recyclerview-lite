@@ -12,5 +12,6 @@
             <enum name="Handle" value="1"/>
             <enum name="Handle_Bubble" value="2"/>
         </attr>
+        <attr name="rrvlAutoHideFastScrollHandle" format="boolean"/>
     </declare-styleable>
 </resources>

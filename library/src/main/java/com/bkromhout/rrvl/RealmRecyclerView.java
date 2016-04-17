@@ -36,6 +36,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
     private boolean dragAndDrop;
     private DragTrigger dragTrigger;
     private FastScrollMode fastScrollMode;
+    private boolean autoHideFSHandle;
 
     public RealmRecyclerView(Context context) {
         super(context);
@@ -101,6 +102,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
             fastScroller.setRecyclerView(recyclerView);
             fastScroller.setViewsToUse(R.layout.fast_scroller, fastScrollMode == FastScrollMode.Handle ? -1
                     : R.id.fast_scroller_bubble, R.id.fast_scroller_handle);
+            fastScroller.setAutoHideHandle(autoHideFSHandle);
         }
     }
 
@@ -118,6 +120,8 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
         int fastScrollModeValue = typedArray.getInt(R.styleable.RealmRecyclerView_rrvlFastScrollMode, -1);
         if (fastScrollModeValue != -1) fastScrollMode = FastScrollMode.values()[fastScrollModeValue];
         else fastScrollMode = FastScrollMode.Off;
+
+        autoHideFSHandle = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlAutoHideFastScrollHandle, false);
 
         typedArray.recycle();
     }
