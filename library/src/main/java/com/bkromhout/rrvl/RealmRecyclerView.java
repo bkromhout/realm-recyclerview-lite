@@ -60,14 +60,6 @@ public class RealmRecyclerView extends FrameLayout implements RealmBasedRecycler
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setHasFixedSize(true);
-        recyclerView.addOnScrollListener(
-                new RecyclerView.OnScrollListener() {
-                    @Override
-                    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                        super.onScrolled(recyclerView, dx, dy);
-                    }
-                }
-        );
 
         if (dragAndDrop) {
             realmSimpleItemTouchHelperCallback = new RealmSimpleItemTouchHelperCallback(
