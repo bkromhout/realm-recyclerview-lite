@@ -2,6 +2,8 @@ package com.bkromhout.rrvl.sample;
 
 import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
+import io.realm.annotations.Index;
+import io.realm.annotations.PrimaryKey;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -20,7 +22,9 @@ public class Item extends RealmObject {
     public static AtomicLong nextUniqueId = new AtomicLong(0L);
 
     public String name;
+    @Index
     public long position;
+    @PrimaryKey
     public long uniqueId;
 
     public Item() {
