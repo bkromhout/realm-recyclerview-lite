@@ -26,7 +26,6 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:design:23.3.0'
     compile 'com.android.support:recyclerview-v7:23.3.0'
     compile 'com.github.bkromhout:java-diff-utils:2.0.0'
 }
