@@ -230,9 +230,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
                     ids = getIdsOfRealmResults();
                 }
             }
-        }
-
-                ;
+        };
     }
 
     /**
