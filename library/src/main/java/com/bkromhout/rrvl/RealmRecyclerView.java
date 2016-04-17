@@ -8,19 +8,24 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewStub;
-import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 import io.realm.RealmBasedRecyclerViewAdapter;
 
 /**
- * A RecyclerView that supports Realm
+ * A RecyclerView that supports Realm.
  */
-public class RealmRecyclerView extends FrameLayout implements RealmBasedRecyclerViewAdapter.StartDragListener {
+public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyclerViewAdapter.StartDragListener {
 
     private enum DragTrigger {
         UserDefined, LongClick
     }
 
+    private enum FastScrollMode {
+        Off, Handle, HandleBubble
+    }
+
     private RecyclerView recyclerView;
+    private FastScroller fastScroller;
     private ViewStub emptyContentContainer;
     private RealmBasedRecyclerViewAdapter adapter;
     private ItemTouchHelper touchHelper;
@@ -30,6 +35,7 @@ public class RealmRecyclerView extends FrameLayout implements RealmBasedRecycler
     private int emptyViewId;
     private boolean dragAndDrop;
     private DragTrigger dragTrigger;
+    private FastScrollMode fastScrollMode;
 
     public RealmRecyclerView(Context context) {
         super(context);
@@ -51,6 +57,7 @@ public class RealmRecyclerView extends FrameLayout implements RealmBasedRecycler
         initAttrs(context, attrs);
 
         recyclerView = (RecyclerView) findViewById(R.id.rrv_recycler_view);
+        fastScroller = (FastScroller) findViewById(R.id.rrv_fast_scroller);
         emptyContentContainer = (ViewStub) findViewById(R.id.rrv_empty_content_container);
 
         if (emptyViewId != 0) {
@@ -58,7 +65,25 @@ public class RealmRecyclerView extends FrameLayout implements RealmBasedRecycler
             emptyContentContainer.inflate();
         }
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        // Set LinearLayoutManager, override the onLayoutChildren() method if
+        recyclerView.setLayoutManager(fastScrollMode == FastScrollMode.Off ? new LinearLayoutManager(getContext()) :
+                new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false) {
+                    @Override
+                    public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+                        super.onLayoutChildren(recycler, state);
+                        final int firstVisibleItemPosition = findFirstVisibleItemPosition();
+                        if (firstVisibleItemPosition != 0) {
+                            // Hide the fast scroller if not initialized, or no items are shown.
+                            if (firstVisibleItemPosition == -1) fastScroller.setVisibility(View.GONE);
+                            return;
+                        }
+                        final int lastVisibleItemPosition = findLastVisibleItemPosition();
+                        int itemsShown = lastVisibleItemPosition - firstVisibleItemPosition + 1;
+                        // Hide fast scroller if all items are visible in the viewport currently.
+                        fastScroller.setVisibility(adapter != null && adapter.getItemCount() > itemsShown
+                                ? View.VISIBLE : View.GONE);
+                    }
+                });
         recyclerView.setHasFixedSize(true);
 
         if (dragAndDrop) {
@@ -67,18 +92,29 @@ public class RealmRecyclerView extends FrameLayout implements RealmBasedRecycler
             touchHelper = new ItemTouchHelper(realmSimpleItemTouchHelperCallback);
             touchHelper.attachToRecyclerView(recyclerView);
         }
+
+        if (fastScrollMode != FastScrollMode.Off) {
+            fastScroller.setVisibility(VISIBLE);
+            fastScroller.setRecyclerView(recyclerView);
+            fastScroller.setViewsToUse(R.layout.fast_scroller, fastScrollMode == FastScrollMode.Handle ? -1
+                    : R.id.fast_scroller_bubble, R.id.fast_scroller_handle);
+        }
     }
 
     private void initAttrs(Context context, AttributeSet attrs) {
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.RealmRecyclerView);
 
-        emptyViewId = typedArray.getResourceId(R.styleable.RealmRecyclerView_rrvEmptyLayoutId, 0);
+        emptyViewId = typedArray.getResourceId(R.styleable.RealmRecyclerView_rrvlEmptyLayoutId, 0);
 
-        dragAndDrop = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvDragAndDrop, false);
+        dragAndDrop = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlDragAndDrop, false);
 
-        int dragStartTriggerValue = typedArray.getInt(R.styleable.RealmRecyclerView_rrvDragStartTrigger, -1);
+        int dragStartTriggerValue = typedArray.getInt(R.styleable.RealmRecyclerView_rrvlDragStartTrigger, -1);
         if (dragStartTriggerValue != -1) dragTrigger = DragTrigger.values()[dragStartTriggerValue];
         else dragTrigger = DragTrigger.UserDefined;
+
+        int fastScrollModeValue = typedArray.getInt(R.styleable.RealmRecyclerView_rrvlFastScrollMode, -1);
+        if (fastScrollModeValue != -1) fastScrollMode = FastScrollMode.values()[fastScrollModeValue];
+        else fastScrollMode = FastScrollMode.Off;
 
         typedArray.recycle();
     }

@@ -21,6 +21,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import com.bkromhout.rrvl.FastScroller;
 import com.bkromhout.rrvl.RealmRecyclerView;
 import com.bkromhout.rrvl.RealmSimpleItemTouchHelperCallback;
 import difflib.Delta;
@@ -36,7 +37,7 @@ import java.util.List;
  * The base {@link RecyclerView.Adapter} that includes custom functionality to be used with {@link RealmRecyclerView}.
  */
 public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH extends RecyclerView.ViewHolder> extends
-        RecyclerView.Adapter<VH> implements RealmSimpleItemTouchHelperCallback.Listener {
+        RecyclerView.Adapter<VH> implements RealmSimpleItemTouchHelperCallback.Listener, FastScroller.BubbleTextGetter {
     private static final String SEL_POSITIONS_KEY = "rrvl-state-key-selected-positions";
 
     /**
@@ -62,7 +63,6 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     private RealmFieldType animatePrimaryIdType;
     private long animateExtraColumnIndex;
     private RealmFieldType animateExtraIdType;
-
 
     public RealmBasedRecyclerViewAdapter(Context context, RealmResults<T> realmResults, boolean automaticUpdate,
                                          boolean animateResults, String animateExtraColumnName) {
@@ -114,6 +114,19 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
 
     public final void setOnStartDragListener(StartDragListener startDragListener) {
         this.startDragListener = startDragListener;
+    }
+
+    /**
+     * Get the text which should be shown in the fast scroller's bubble for the item at {@code position}.
+     * <p/>
+     * This method returns null by default. It only needs to be implemented if {@link RealmRecyclerView} had the XML
+     * attribute {@code rrvlFastScrollMode} set to {@code "Handle_Bubble"}.
+     * @param position Position of the item to return text for.
+     * @return Text to show in the fast scroller's bubble.
+     */
+    @Override
+    public String getFastScrollBubbleText(int position) {
+        return null;
     }
 
     /**
@@ -264,7 +277,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
 
     /**
      * Set the selected state of the item at {@code position}.
-     * <p>
+     * <p/>
      * This method will call notifyItemChanged(position) when it completes; it is up to extending class to check if the
      * position is selected when onBindViewHolder gets called again and react accordingly.
      * @param selected Whether or not the item is selected.
@@ -400,13 +413,13 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * "moves" each time it is dragged over another item (as in, when the two items should appear to swap); however, if
      * a drag happens very fast this tends to not get called until the dragged item has already moved past more than one
      * target item.
-     * <p>
+     * <p/>
      * Put together, this means that the following three cases should be considered for best performance:<br/>1: The
      * dragged item moves past one item (the items swap) -> Swap the values of whatever field is used to maintain
      * order.<br/>2: The dragged item has moved up past several items -> Recalculate the order field's value for the
      * dragging item.<br/>3: The dragged item has moved down past several items -> Recalculate the order field's value
      * for the dragging item.
-     * <p>
+     * <p/>
      * If these three cases are handled well (specifically, the latter two do not cause the whole list's order field
      * values to be recalculated), then dragging items should be nearly (if not completely) lag free.
      * @param dragging The ViewHolder item being dragged.

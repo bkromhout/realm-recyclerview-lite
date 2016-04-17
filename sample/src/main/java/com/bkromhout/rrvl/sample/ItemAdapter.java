@@ -71,6 +71,11 @@ public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter
         return true;
     }
 
+    @Override
+    public String getFastScrollBubbleText(int position) {
+        return String.valueOf(realmResults.get(position).name.charAt(0));
+    }
+
     static class ItemVH extends RecyclerView.ViewHolder {
         @Bind(R.id.content)
         RelativeLayout content;

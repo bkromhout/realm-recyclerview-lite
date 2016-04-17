@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="rrvl_bubble_text_size">48sp</dimen>
+    <dimen name="rrvl_handle_margin_end">8dp</dimen>
+    <dimen name="rrvl_handle_padding_start">8dp</dimen>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="rrvl_bubble_color">#FF4081</color>
+    <color name="rrvl_bubble_text_color">@android:color/white</color>
+    <color name="rrvl_handle_inactive_color">#757575</color>
+    <color name="rrvl_handle_active_color">#FF4081</color>
+</resources>

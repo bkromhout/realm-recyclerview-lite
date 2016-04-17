@@ -13,5 +13,6 @@
             android:id="@+id/recycler"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:rrvDragAndDrop="true"/>
+            app:rrvlDragAndDrop="true"
+            app:rrvlFastScrollMode="Handle_Bubble"/>
 </RelativeLayout>
