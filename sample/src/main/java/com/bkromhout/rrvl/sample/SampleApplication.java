@@ -39,7 +39,7 @@ public class SampleApplication extends Application {
      */
     private void createDefaultRealmData(Realm realm) {
         ArrayList<Item> items = new ArrayList<>(100);
-        for (int i = 0; i < 100; i++) items.add(new Item("Item " + String.valueOf(i)));
+        for (int i = 0; i < 100; i++) items.add(new Item(String.valueOf(i / 10) + " Item " + String.valueOf(i)));
         realm.copyToRealm(items);
     }
 }
