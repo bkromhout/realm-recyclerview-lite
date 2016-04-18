@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="RealmRecyclerView">
+        <!-- Layout resource ID to inflate and use as an empty view. None by default. -->
         <attr name="rrvlEmptyLayoutId" format="reference"/>
+        <!-- Whether to enable drag and drop or not. False by default. -->
         <attr name="rrvlDragAndDrop" format="boolean"/>
+        <!-- What to use to trigger the start of a view drag. UserDefined by default. -->
         <attr name="rrvlDragStartTrigger">
             <enum name="UserDefined" value="0"/>
             <enum name="LongClick" value="1"/>
         </attr>
-        <attr name="rrvlFastScrollMode">
-            <enum name="Off" value="0"/>
-            <enum name="Handle" value="1"/>
-            <enum name="Handle_Bubble" value="2"/>
-        </attr>
+        <!-- Whether to enable the fast scroller. False by default.
+             Also see the "rrvlUseFastScrollBubble" and "rrvlAutoHideFastScrollHandle". -->
+        <attr name="rrvlFastScrollEnabled" format="boolean"/>
+        <!-- Whether to auto-hide the fast scroller's handle. False by default (handle will stay visible). -->
         <attr name="rrvlAutoHideFastScrollHandle" format="boolean"/>
+        <!-- Whether to use the fast scroller's section bubble. False by default. If set to true, be sure to have your
+             adapter implement {@link com.bkromhout.rrvl.FastScroller.BubbleTextGetter}. -->
+        <attr name="rrvlUseFastScrollBubble" format="boolean"/>
     </declare-styleable>
 </resources>

@@ -13,15 +13,19 @@ import io.realm.RealmBasedRecyclerViewAdapter;
 
 /**
  * A RecyclerView that supports Realm.
+ * <p/>
+ * See {@link com.bkromhout.rrvl.R.styleable#RealmRecyclerView RealmRecyclerView Attributes}
+ * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlEmptyLayoutId
+ * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlDragAndDrop
+ * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlDragStartTrigger
+ * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlFastScrollEnabled
+ * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlAutoHideFastScrollHandle
+ * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlUseFastScrollBubble
  */
 public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyclerViewAdapter.StartDragListener {
 
     private enum DragTrigger {
         UserDefined, LongClick
-    }
-
-    private enum FastScrollMode {
-        Off, Handle, HandleBubble
     }
 
     private RecyclerView recyclerView;
@@ -35,8 +39,9 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
     private int emptyViewId;
     private boolean dragAndDrop;
     private DragTrigger dragTrigger;
-    private FastScrollMode fastScrollMode;
+    private boolean fastScrollEnabled;
     private boolean autoHideFSHandle;
+    private boolean useFastScrollBubble;
 
     public RealmRecyclerView(Context context) {
         super(context);
@@ -66,28 +71,26 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
             emptyContentContainer.inflate();
         }
 
-        // Only show system scrollbar if we don't have a fast scroller.
-        recyclerView.setVerticalScrollBarEnabled(fastScrollMode == FastScrollMode.Off);
+        // Set LinearLayoutManager, override the onLayoutChildren() method.
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false) {
+            @Override
+            public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+                super.onLayoutChildren(recycler, state);
+                if (!fastScrollEnabled) return;
 
-        // Set LinearLayoutManager, override the onLayoutChildren() method if we have a fast scroller.
-        recyclerView.setLayoutManager(fastScrollMode == FastScrollMode.Off ? new LinearLayoutManager(getContext()) :
-                new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false) {
-                    @Override
-                    public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-                        super.onLayoutChildren(recycler, state);
-                        final int firstVisibleItemPosition = findFirstVisibleItemPosition();
-                        if (firstVisibleItemPosition != 0) {
-                            // Hide the fast scroller if not initialized, or no items are shown.
-                            if (firstVisibleItemPosition == -1) fastScroller.setVisibility(View.GONE);
-                            return;
-                        }
-                        final int lastVisibleItemPosition = findLastVisibleItemPosition();
-                        int itemsShown = lastVisibleItemPosition - firstVisibleItemPosition + 1;
-                        // Hide fast scroller if all items are visible in the viewport currently.
-                        fastScroller.setVisibility(adapter != null && adapter.getItemCount() > itemsShown
-                                ? View.VISIBLE : View.GONE);
-                    }
-                });
+                final int firstVisibleItemPosition = findFirstVisibleItemPosition();
+                if (firstVisibleItemPosition != 0) {
+                    // Hide the fast scroller if not initialized, or no items are shown.
+                    if (firstVisibleItemPosition == -1) fastScroller.setVisibility(View.GONE);
+                    return;
+                }
+                final int lastVisibleItemPosition = findLastVisibleItemPosition();
+                int itemsShown = lastVisibleItemPosition - firstVisibleItemPosition + 1;
+                // Hide fast scroller if all items are visible in the viewport currently.
+                fastScroller.setVisibility(adapter != null && adapter.getItemCount() > itemsShown
+                        ? View.VISIBLE : View.GONE);
+            }
+        });
         recyclerView.setHasFixedSize(true);
 
         if (dragAndDrop) {
@@ -97,13 +100,12 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
             touchHelper.attachToRecyclerView(recyclerView);
         }
 
-        if (fastScrollMode != FastScrollMode.Off) {
-            fastScroller.setVisibility(VISIBLE);
-            fastScroller.setRecyclerView(recyclerView);
-            fastScroller.setViewsToUse(R.layout.fast_scroller, fastScrollMode == FastScrollMode.Handle ? -1
-                    : R.id.fast_scroller_bubble, R.id.fast_scroller_handle);
-            fastScroller.setAutoHideHandle(autoHideFSHandle);
-        }
+        // Only show system scrollbar if we don't have a fast scroller.
+        fastScroller.setRecyclerView(recyclerView);
+        fastScroller.setUseBubble(useFastScrollBubble);
+        fastScroller.setAutoHideHandle(autoHideFSHandle);
+        recyclerView.setVerticalScrollBarEnabled(!fastScrollEnabled);
+        if (fastScrollEnabled) fastScroller.setVisibility(VISIBLE);
     }
 
     private void initAttrs(Context context, AttributeSet attrs) {
@@ -117,11 +119,9 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
         if (dragStartTriggerValue != -1) dragTrigger = DragTrigger.values()[dragStartTriggerValue];
         else dragTrigger = DragTrigger.UserDefined;
 
-        int fastScrollModeValue = typedArray.getInt(R.styleable.RealmRecyclerView_rrvlFastScrollMode, -1);
-        if (fastScrollModeValue != -1) fastScrollMode = FastScrollMode.values()[fastScrollModeValue];
-        else fastScrollMode = FastScrollMode.Off;
-
+        fastScrollEnabled = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlFastScrollEnabled, false);
         autoHideFSHandle = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlAutoHideFastScrollHandle, false);
+        useFastScrollBubble = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlUseFastScrollBubble, false);
 
         typedArray.recycle();
     }
@@ -183,6 +183,27 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
     @Override
     public final void startDragging(RecyclerView.ViewHolder viewHolder) {
         if (touchHelper != null) touchHelper.startDrag(viewHolder);
+    }
+
+    /**
+     * Enable/Disable the fast scroller. The system-drawn scrollbars will be enabled if the fast scroller isn't (and
+     * vice versa).
+     * @param enabled Whether to enable the fast scroller or not.
+     */
+    public final void setFastScrollEnabled(boolean enabled) {
+        this.fastScrollEnabled = enabled;
+        recyclerView.setVerticalScrollBarEnabled(!fastScrollEnabled);
+        fastScroller.setVisibility(fastScrollEnabled ? VISIBLE : GONE);
+    }
+
+    public final void setAutoHideFastScrollerHandle(boolean autoHide) {
+        this.autoHideFSHandle = autoHide;
+        fastScroller.setAutoHideHandle(autoHide);
+    }
+
+    public final void setUseFastScrollBubble(boolean useBubble) {
+        this.useFastScrollBubble = useBubble;
+        fastScroller.setUseBubble(useBubble);
     }
 
     /*

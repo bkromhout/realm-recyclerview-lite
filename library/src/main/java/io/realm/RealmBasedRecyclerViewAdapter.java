@@ -271,6 +271,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * @param position The position to check.
      * @return True if the item is selected, otherwise false.
      */
+    @SuppressWarnings("unused")
     public final boolean isSelected(int position) {
         return selectedPositions.contains(position);
     }
@@ -283,6 +284,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * @param selected Whether or not the item is selected.
      * @param position Position of the item to set.
      */
+    @SuppressWarnings("unused")
     public final void setSelected(boolean selected, int position) {
         if (position < 0 || position >= realmResults.size()) return;
 
@@ -304,6 +306,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * Toggles the selection state of the item at {@code position}.
      * @param position Position of the item to toggle.
      */
+    @SuppressWarnings("unused")
     public final void toggleSelected(int position) {
         if (position < 0 || position >= realmResults.size()) return;
 
@@ -321,6 +324,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * Get the number of selected items.
      * @return Number of selected items.
      */
+    @SuppressWarnings("unused")
     public final int getSelectedItemCount() {
         return selectedPositions.size();
     }
@@ -330,6 +334,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * @return List of realm objects, or null if called when the load more view, section headers, or the footer view are
      * added/enabled.
      */
+    @SuppressWarnings("unused")
     public final List<T> getSelectedRealmObjects() {
         ArrayList<T> realmObjects = new ArrayList<>();
         // If everything is selected, be quick.
@@ -344,6 +349,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * {@code position}.
      * @param position The position to extend the selection to.
      */
+    @SuppressWarnings("unused")
     public final void extendSelectionTo(int position) {
         if (position < 0 || position >= realmResults.size()) return;
 
@@ -378,6 +384,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     /**
      * Select all of the items in the list.
      */
+    @SuppressWarnings("unused")
     public final void selectAll() {
         // Add all positions.
         for (int i = 0; i < realmResults.size(); i++) selectedPositions.add(i);
@@ -436,6 +443,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * indices.
      * @param out Bundle to save state to.
      */
+    @SuppressWarnings("unused")
     public final void saveInstanceState(Bundle out) {
         if (out != null) {
             out.putIntegerArrayList(SEL_POSITIONS_KEY, new ArrayList<>(selectedPositions));
@@ -447,6 +455,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * @param in Bundle to try and restore state from.
      * @see #saveInstanceState(Bundle)
      */
+    @SuppressWarnings("unused")
     public final void restoreInstanceState(Bundle in) {
         if (in != null) {
             ArrayList<Integer> temp = in.getIntegerArrayList(SEL_POSITIONS_KEY);
