@@ -15,7 +15,8 @@
         <attr name="rrvlFastScrollEnabled" format="boolean"/>
         <!-- Whether to auto-hide the fast scroller's handle. False by default (handle will stay visible). -->
         <attr name="rrvlAutoHideFastScrollHandle" format="boolean"/>
-
+        <!-- If fast scroller handle auto-hiding is turned on, this is the amount of time the handle will stay visible
+             before hiding. 2000 ms by default. Values below 0 are ignored. -->
         <attr name="rrvlHandleAutoHideDelay" format="integer"/>
         <!-- Whether to use the fast scroller's section bubble. False by default. If set to true, be sure to have your
              adapter override {@link RealmBasedRecyclerViewAdapter#getFastScrollBubbleText(int)}. -->

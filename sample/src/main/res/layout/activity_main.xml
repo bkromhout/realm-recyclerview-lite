@@ -16,5 +16,6 @@
             app:rrvlDragAndDrop="true"
             app:rrvlFastScrollEnabled="true"
             app:rrvlAutoHideFastScrollHandle="true"
+            app:rrvlHandleAutoHideDelay="1000"
             app:rrvlUseFastScrollBubble="true"/>
 </RelativeLayout>

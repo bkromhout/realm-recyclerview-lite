@@ -32,7 +32,7 @@ public class FastScroller extends LinearLayout {
     private boolean isInitialized = false;
     private boolean useBubble = false;
     private boolean autoHideHandle = false;
-    private long autoHideDelay = DEFAULT_HANDLE_HIDE_DELAY;
+    private int autoHideDelay = DEFAULT_HANDLE_HIDE_DELAY;
     private int height;
     private ObjectAnimator currentBubbleShowAnimator = null;
     private ObjectAnimator currentBubbleHideAnimator = null;
@@ -107,6 +107,16 @@ public class FastScroller extends LinearLayout {
             hideHandle();
         }
         this.autoHideHandle = autoHideHandle;
+    }
+
+    /**
+     * Set the delay (in ms) before the handle auto-hides. {@link #DEFAULT_HANDLE_HIDE_DELAY} is the default.
+     * @param autoHideDelay Time in milliseconds to delay before auto-hiding the handle. If < 0, the default will be
+     *                      used.
+     */
+    void setAutoHideDelay(int autoHideDelay) {
+        if (autoHideDelay < 0) this.autoHideDelay = DEFAULT_HANDLE_HIDE_DELAY;
+        else this.autoHideDelay = autoHideDelay;
     }
 
     /**
