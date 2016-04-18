@@ -21,6 +21,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import com.bkromhout.rrvl.FastScroller;
 import com.bkromhout.rrvl.RealmRecyclerView;
 import com.bkromhout.rrvl.RealmSimpleItemTouchHelperCallback;
 import difflib.Delta;
@@ -36,7 +37,7 @@ import java.util.List;
  * The base {@link RecyclerView.Adapter} that includes custom functionality to be used with {@link RealmRecyclerView}.
  */
 public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH extends RecyclerView.ViewHolder> extends
-        RecyclerView.Adapter<VH> implements RealmSimpleItemTouchHelperCallback.Listener {
+        RecyclerView.Adapter<VH> implements RealmSimpleItemTouchHelperCallback.Listener, FastScroller.BubbleTextGetter {
     private static final String SEL_POSITIONS_KEY = "rrvl-state-key-selected-positions";
 
     /**
@@ -63,7 +64,6 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     private long animateExtraColumnIndex;
     private RealmFieldType animateExtraIdType;
 
-
     public RealmBasedRecyclerViewAdapter(Context context, RealmResults<T> realmResults, boolean automaticUpdate,
                                          boolean animateResults, String animateExtraColumnName) {
         if (context == null) throw new IllegalArgumentException("Context cannot be null");
@@ -85,7 +85,6 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
             if (animatePrimaryIdType != RealmFieldType.INTEGER && animatePrimaryIdType != RealmFieldType.STRING)
                 throw new IllegalStateException("Animating requires a primary key of type Integer/Long or String");
 
-
             if (animateExtraColumnName != null) {
                 animateExtraColumnIndex = realmResults.getTable().getTable().getColumnIndex(animateExtraColumnName);
                 if (animateExtraColumnIndex == TableOrView.NO_MATCH) throw new IllegalStateException(
@@ -103,17 +102,31 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         updateRealmResults(realmResults);
     }
 
-    public Object getLastItem() {
-        return realmResults.get(realmResults.size() - 1);
-    }
-
     @Override
     public int getItemCount() {
         return realmResults != null ? realmResults.size() : 0;
     }
 
+    @SuppressWarnings("unused")
+    public Object getLastItem() {
+        return realmResults.get(realmResults.size() - 1);
+    }
+
     public final void setOnStartDragListener(StartDragListener startDragListener) {
         this.startDragListener = startDragListener;
+    }
+
+    /**
+     * Get the text which should be shown in the fast scroller's bubble for the item at {@code position}.
+     * <p/>
+     * This method returns null by default. It only needs to be implemented if {@link RealmRecyclerView} had the XML
+     * attribute {@code rrvlFastScrollMode} set to {@code "Handle_Bubble"}.
+     * @param position Position of the item to return text for.
+     * @return Text to show in the fast scroller's bubble.
+     */
+    @Override
+    public String getFastScrollBubbleText(int position) {
+        return null;
     }
 
     /**
@@ -145,7 +158,8 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         if (!animateResults || realmResults == null || realmResults.size() == 0) return EMPTY_LIST;
 
         List ids = new ArrayList(realmResults.size());
-        for (int i = 0; i < realmResults.size(); i++) ids.add(getRealmRowId(i));
+        for (int i = 0; i < realmResults.size(); i++) //noinspection unchecked
+            ids.add(getRealmRowId(i));
 
         return ids;
     }
@@ -193,6 +207,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
                     }
 
                     Patch patch = DiffUtils.diff(ids, newIds);
+                    //noinspection unchecked
                     List<Delta> deltas = patch.getDeltas();
                     ids = newIds;
 
@@ -258,18 +273,20 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * @param position The position to check.
      * @return True if the item is selected, otherwise false.
      */
+    @SuppressWarnings("unused")
     public final boolean isSelected(int position) {
         return selectedPositions.contains(position);
     }
 
     /**
      * Set the selected state of the item at {@code position}.
-     * <p>
+     * <p/>
      * This method will call notifyItemChanged(position) when it completes; it is up to extending class to check if the
      * position is selected when onBindViewHolder gets called again and react accordingly.
      * @param selected Whether or not the item is selected.
      * @param position Position of the item to set.
      */
+    @SuppressWarnings("unused")
     public final void setSelected(boolean selected, int position) {
         if (position < 0 || position >= realmResults.size()) return;
 
@@ -291,6 +308,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * Toggles the selection state of the item at {@code position}.
      * @param position Position of the item to toggle.
      */
+    @SuppressWarnings("unused")
     public final void toggleSelected(int position) {
         if (position < 0 || position >= realmResults.size()) return;
 
@@ -308,6 +326,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * Get the number of selected items.
      * @return Number of selected items.
      */
+    @SuppressWarnings("unused")
     public final int getSelectedItemCount() {
         return selectedPositions.size();
     }
@@ -317,6 +336,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * @return List of realm objects, or null if called when the load more view, section headers, or the footer view are
      * added/enabled.
      */
+    @SuppressWarnings("unused")
     public final List<T> getSelectedRealmObjects() {
         ArrayList<T> realmObjects = new ArrayList<>();
         // If everything is selected, be quick.
@@ -331,6 +351,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * {@code position}.
      * @param position The position to extend the selection to.
      */
+    @SuppressWarnings("unused")
     public final void extendSelectionTo(int position) {
         if (position < 0 || position >= realmResults.size()) return;
 
@@ -365,6 +386,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     /**
      * Select all of the items in the list.
      */
+    @SuppressWarnings("unused")
     public final void selectAll() {
         // Add all positions.
         for (int i = 0; i < realmResults.size(); i++) selectedPositions.add(i);
@@ -400,13 +422,13 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * "moves" each time it is dragged over another item (as in, when the two items should appear to swap); however, if
      * a drag happens very fast this tends to not get called until the dragged item has already moved past more than one
      * target item.
-     * <p>
+     * <p/>
      * Put together, this means that the following three cases should be considered for best performance:<br/>1: The
      * dragged item moves past one item (the items swap) -> Swap the values of whatever field is used to maintain
      * order.<br/>2: The dragged item has moved up past several items -> Recalculate the order field's value for the
      * dragging item.<br/>3: The dragged item has moved down past several items -> Recalculate the order field's value
      * for the dragging item.
-     * <p>
+     * <p/>
      * If these three cases are handled well (specifically, the latter two do not cause the whole list's order field
      * values to be recalculated), then dragging items should be nearly (if not completely) lag free.
      * @param dragging The ViewHolder item being dragged.
@@ -423,6 +445,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * indices.
      * @param out Bundle to save state to.
      */
+    @SuppressWarnings("unused")
     public final void saveInstanceState(Bundle out) {
         if (out != null) {
             out.putIntegerArrayList(SEL_POSITIONS_KEY, new ArrayList<>(selectedPositions));
@@ -434,6 +457,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * @param in Bundle to try and restore state from.
      * @see #saveInstanceState(Bundle)
      */
+    @SuppressWarnings("unused")
     public final void restoreInstanceState(Bundle in) {
         if (in != null) {
             ArrayList<Integer> temp = in.getIntegerArrayList(SEL_POSITIONS_KEY);
