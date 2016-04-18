@@ -20,6 +20,7 @@ import io.realm.RealmBasedRecyclerViewAdapter;
  * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlDragStartTrigger
  * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlFastScrollEnabled
  * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlAutoHideFastScrollHandle
+ * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlHandleAutoHideDelay
  * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlUseFastScrollBubble
  */
 public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyclerViewAdapter.StartDragListener {
@@ -40,7 +41,8 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
     private boolean dragAndDrop;
     private DragTrigger dragTrigger;
     private boolean fastScrollEnabled;
-    private boolean autoHideFSHandle;
+    private boolean autoHideHandle;
+    private long handleAutoHideDelay; // TODO stuff for this
     private boolean useFastScrollBubble;
 
     public RealmRecyclerView(Context context) {
@@ -103,7 +105,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
         // Only show system scrollbar if we don't have a fast scroller.
         fastScroller.setRecyclerView(recyclerView);
         fastScroller.setUseBubble(useFastScrollBubble);
-        fastScroller.setAutoHideHandle(autoHideFSHandle);
+        fastScroller.setAutoHideHandle(autoHideHandle);
         recyclerView.setVerticalScrollBarEnabled(!fastScrollEnabled);
         if (fastScrollEnabled) fastScroller.setVisibility(VISIBLE);
     }
@@ -120,7 +122,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
         else dragTrigger = DragTrigger.UserDefined;
 
         fastScrollEnabled = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlFastScrollEnabled, false);
-        autoHideFSHandle = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlAutoHideFastScrollHandle, false);
+        autoHideHandle = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlAutoHideFastScrollHandle, false);
         useFastScrollBubble = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlUseFastScrollBubble, false);
 
         typedArray.recycle();
@@ -196,11 +198,22 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
         fastScroller.setVisibility(fastScrollEnabled ? VISIBLE : GONE);
     }
 
+    /**
+     * Set whether the fast scroller handle will auto-hide or stay visible.
+     * @param autoHide Whether to auto-hide the fast scroller handle or not.
+     */
     public final void setAutoHideFastScrollerHandle(boolean autoHide) {
-        this.autoHideFSHandle = autoHide;
+        this.autoHideHandle = autoHide;
         fastScroller.setAutoHideHandle(autoHide);
     }
 
+    /**
+     * Set whether to use the fast scroller bubble or not. If set to true, your concrete {@link
+     * RealmBasedRecyclerViewAdapter} class should be sure to override
+     * {@link RealmBasedRecyclerViewAdapter#getFastScrollBubbleText(int)}
+     * so that the fast scroller will know what text to put into the bubble.
+     * @param useBubble Whether to use the fast scroller bubble or not.
+     */
     public final void setUseFastScrollBubble(boolean useBubble) {
         this.useFastScrollBubble = useBubble;
         fastScroller.setUseBubble(useBubble);

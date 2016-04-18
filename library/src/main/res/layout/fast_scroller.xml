@@ -13,7 +13,7 @@
             android:gravity="center"
             android:textColor="@color/rrvl_bubble_text_color"
             android:textSize="@dimen/rrvl_bubble_text_size"
-            android:visibility="gone"
+            android:visibility="invisible"
             tools:text="A"/>
 
     <ImageView

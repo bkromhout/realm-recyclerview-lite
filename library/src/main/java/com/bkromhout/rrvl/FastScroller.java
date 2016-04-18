@@ -22,7 +22,7 @@ import android.widget.TextView;
 public class FastScroller extends LinearLayout {
     private static final int BUBBLE_ANIMATION_DURATION = 100;
     private static final int HANDLE_ANIMATION_DURATION = 100;
-    private static final int HANDLE_HIDE_DELAY = 2000;
+    static final int DEFAULT_HANDLE_HIDE_DELAY = 2000;
     private static final int TRACK_SNAP_RANGE = 5;
 
     private TextView bubble;
@@ -32,6 +32,7 @@ public class FastScroller extends LinearLayout {
     private boolean isInitialized = false;
     private boolean useBubble = false;
     private boolean autoHideHandle = false;
+    private long autoHideDelay = DEFAULT_HANDLE_HIDE_DELAY;
     private int height;
     private ObjectAnimator currentBubbleShowAnimator = null;
     private ObjectAnimator currentBubbleHideAnimator = null;
@@ -295,7 +296,7 @@ public class FastScroller extends LinearLayout {
             currentHandleHideAnimator = ObjectAnimator.ofFloat(handle, "alpha", 1f, 0f)
                                                       .setDuration(HANDLE_ANIMATION_DURATION);
             // Make sure the delay also includes the remaining show animation time if it's running.
-            currentHandleHideAnimator.setStartDelay(HANDLE_HIDE_DELAY + (currentHandleShowAnimator == null ? 0
+            currentHandleHideAnimator.setStartDelay(autoHideDelay + (currentHandleShowAnimator == null ? 0
                     : (HANDLE_ANIMATION_DURATION - currentHandleShowAnimator.getCurrentPlayTime())));
             currentHandleHideAnimator.addListener(new AnimatorListenerAdapter() {
                 @Override

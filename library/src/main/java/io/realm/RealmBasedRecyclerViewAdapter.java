@@ -85,7 +85,6 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
             if (animatePrimaryIdType != RealmFieldType.INTEGER && animatePrimaryIdType != RealmFieldType.STRING)
                 throw new IllegalStateException("Animating requires a primary key of type Integer/Long or String");
 
-
             if (animateExtraColumnName != null) {
                 animateExtraColumnIndex = realmResults.getTable().getTable().getColumnIndex(animateExtraColumnName);
                 if (animateExtraColumnIndex == TableOrView.NO_MATCH) throw new IllegalStateException(
@@ -103,13 +102,14 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         updateRealmResults(realmResults);
     }
 
-    public Object getLastItem() {
-        return realmResults.get(realmResults.size() - 1);
-    }
-
     @Override
     public int getItemCount() {
         return realmResults != null ? realmResults.size() : 0;
+    }
+
+    @SuppressWarnings("unused")
+    public Object getLastItem() {
+        return realmResults.get(realmResults.size() - 1);
     }
 
     public final void setOnStartDragListener(StartDragListener startDragListener) {
@@ -158,7 +158,8 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         if (!animateResults || realmResults == null || realmResults.size() == 0) return EMPTY_LIST;
 
         List ids = new ArrayList(realmResults.size());
-        for (int i = 0; i < realmResults.size(); i++) ids.add(getRealmRowId(i));
+        for (int i = 0; i < realmResults.size(); i++) //noinspection unchecked
+            ids.add(getRealmRowId(i));
 
         return ids;
     }
@@ -206,6 +207,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
                     }
 
                     Patch patch = DiffUtils.diff(ids, newIds);
+                    //noinspection unchecked
                     List<Delta> deltas = patch.getDeltas();
                     ids = newIds;
 

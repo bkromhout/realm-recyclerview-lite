@@ -15,8 +15,10 @@
         <attr name="rrvlFastScrollEnabled" format="boolean"/>
         <!-- Whether to auto-hide the fast scroller's handle. False by default (handle will stay visible). -->
         <attr name="rrvlAutoHideFastScrollHandle" format="boolean"/>
+
+        <attr name="rrvlHandleAutoHideDelay" format="integer"/>
         <!-- Whether to use the fast scroller's section bubble. False by default. If set to true, be sure to have your
-             adapter implement {@link com.bkromhout.rrvl.FastScroller.BubbleTextGetter}. -->
+             adapter override {@link RealmBasedRecyclerViewAdapter#getFastScrollBubbleText(int)}. -->
         <attr name="rrvlUseFastScrollBubble" format="boolean"/>
     </declare-styleable>
 </resources>
