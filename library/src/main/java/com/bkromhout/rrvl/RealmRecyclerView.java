@@ -211,7 +211,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
      * @param autoHide Whether to auto-hide the fast scroller handle or not.
      */
     @SuppressWarnings("unused")
-    public final void setAutoHideFastScrollerHandle(boolean autoHide) {
+    public final void setAutoHideFastScrollHandle(boolean autoHide) {
         this.autoHideHandle = autoHide;
         fastScroller.setAutoHideHandle(autoHide);
     }
@@ -254,7 +254,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
      * @return LinearLayoutManager.
      */
     @SuppressWarnings("unused")
-    public LinearLayoutManager getLayoutManger() {
+    public LinearLayoutManager getLayoutManager() {
         return (LinearLayoutManager) recyclerView.getLayoutManager();
     }
 }
