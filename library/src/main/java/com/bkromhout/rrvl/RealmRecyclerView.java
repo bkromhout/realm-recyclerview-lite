@@ -254,7 +254,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
      * @return LinearLayoutManager.
      */
     @SuppressWarnings("unused")
-    public LinearLayoutManager getLayoutManger() {
+    public LinearLayoutManager getLayoutManager() {
         return (LinearLayoutManager) recyclerView.getLayoutManager();
     }
 }
