@@ -74,8 +74,7 @@ public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter
 
     @Override
     public String getFastScrollBubbleText(int position) {
-        if (position > 50) return null;
-        else return String.valueOf(realmResults.get(position).name.charAt(0));
+        return String.valueOf(realmResults.get(position).name.charAt(0));
     }
 
     static class ItemVH extends RecyclerView.ViewHolder {
