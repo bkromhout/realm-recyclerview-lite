@@ -25,20 +25,22 @@ class FastScroller extends LinearLayout {
     static final int DEFAULT_HANDLE_HIDE_DELAY = 2000;
     private static final int TRACK_SNAP_RANGE = 5;
 
-    private TextView bubble;
     private View handle;
+    private TextView bubble;
     private RecyclerView recyclerView;
 
-    private boolean isInitialized = false;
-    private boolean useBubble = false;
-    private boolean autoHideHandle = false;
-    private int autoHideDelay = DEFAULT_HANDLE_HIDE_DELAY;
-    private int height;
-    private BubbleTextProvider bubbleTextProvider = null;
     private ObjectAnimator currentBubbleShowAnimator = null;
     private ObjectAnimator currentBubbleHideAnimator = null;
     private ObjectAnimator currentHandleShowAnimator = null;
     private ObjectAnimator currentHandleHideAnimator = null;
+    private int height;
+
+    private boolean autoHideHandle = false;
+    private int autoHideDelay = DEFAULT_HANDLE_HIDE_DELAY;
+    private boolean useBubble = false;
+    private BubbleTextProvider bubbleTextProvider = null;
+    private FastScrollHandleStateListener handleStateListener = null;
+    private boolean eatVisibilityUpdates = false;
 
     /**
      * RecyclerView.OnScrollListener to make sure that we update the visibility of our views when scrolling the recycler
@@ -65,24 +67,16 @@ class FastScroller extends LinearLayout {
         }
     };
 
-    public FastScroller(final Context context, final AttributeSet attrs, final int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        init(context);
-    }
-
     public FastScroller(final Context context) {
-        super(context);
-        init(context);
+        this(context, null, 0);
     }
 
     public FastScroller(final Context context, final AttributeSet attrs) {
-        super(context, attrs);
-        init(context);
+        this(context, attrs, 0);
     }
 
-    protected void init(Context context) {
-        if (isInitialized) return;
-        isInitialized = true;
+    public FastScroller(final Context context, final AttributeSet attrs, final int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
         setOrientation(HORIZONTAL);
         setClipChildren(false);
         LayoutInflater.from(context).inflate(R.layout.fast_scroller, this, true);
@@ -133,6 +127,14 @@ class FastScroller extends LinearLayout {
         this.bubbleTextProvider = bubbleTextProvider;
     }
 
+    /**
+     * Set the {@link FastScrollHandleStateListener} to use.
+     * @param handleStateListener Handle state listener.
+     */
+    void setHandleStateListener(FastScrollHandleStateListener handleStateListener) {
+        this.handleStateListener = handleStateListener;
+    }
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -151,6 +153,7 @@ class FastScroller extends LinearLayout {
                 if (useBubble && bubble.getVisibility() == INVISIBLE) showBubble();
                 // Select the handle.
                 handle.setSelected(true);
+                notifyHandleListener(FastScrollerHandleState.PRESSED);
             case MotionEvent.ACTION_MOVE:
                 // If the handle isn't visible, ignore this.
                 if (handle.getVisibility() != VISIBLE) return false;
@@ -165,6 +168,7 @@ class FastScroller extends LinearLayout {
             case MotionEvent.ACTION_CANCEL:
                 // Un-select the handle.
                 handle.setSelected(false);
+                notifyHandleListener(FastScrollerHandleState.RELEASED);
                 // Hide the bubble (if we're using it).
                 hideBubble();
                 // If we have auto-hide turned on, make sure we hide the handle (after a delay).
@@ -254,13 +258,19 @@ class FastScroller extends LinearLayout {
     private void showHandle() {
         // If we're currently animating a hide, reverse and cancel that, then set the handle to visible.
         if (currentHandleHideAnimator != null) {
+            // Don't allow the listener to be notified when the reversed hide animation ends.
+            eatVisibilityUpdates = true;
             currentHandleHideAnimator.reverse();
             handle.setVisibility(VISIBLE);
+            eatVisibilityUpdates = false;
         }
 
         // At this point, if autoHideHandle is false, just make sure that the handle is visible and we're done.
         if (!autoHideHandle) {
-            handle.setVisibility(VISIBLE);
+            if (handle.getVisibility() != VISIBLE) {
+                handle.setVisibility(VISIBLE);
+                notifyHandleListener(FastScrollerHandleState.VISIBLE);
+            }
             return;
         }
 
@@ -273,12 +283,14 @@ class FastScroller extends LinearLayout {
                 @Override
                 public void onAnimationCancel(Animator animation) {
                     super.onAnimationCancel(animation);
+                    notifyHandleListener(FastScrollerHandleState.VISIBLE);
                     currentHandleShowAnimator = null;
                 }
 
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     super.onAnimationEnd(animation);
+                    notifyHandleListener(FastScrollerHandleState.VISIBLE);
                     currentHandleShowAnimator = null;
                 }
             });
@@ -297,13 +309,19 @@ class FastScroller extends LinearLayout {
         // If we're currently animating a show and auto-hide isn't turned on, reverse and cancel that animation, then
         // set the handle to be not visible.
         if (currentHandleShowAnimator != null && !autoHideHandle) {
+            // Don't allow the listener to be notified when the reversed show animation ends.
+            eatVisibilityUpdates = true;
             currentHandleShowAnimator.reverse();
+            eatVisibilityUpdates = false;
             handle.setVisibility(INVISIBLE);
         }
 
         // At this point, if autoHideHandle is false, just make sure that the handle isn't visible and we're done.
         if (!autoHideHandle) {
-            handle.setVisibility(INVISIBLE);
+            if (handle.getVisibility() == VISIBLE) {
+                handle.setVisibility(INVISIBLE);
+                notifyHandleListener(FastScrollerHandleState.HIDDEN);
+            }
             return;
         }
 
@@ -319,6 +337,7 @@ class FastScroller extends LinearLayout {
                 public void onAnimationCancel(Animator animation) {
                     super.onAnimationCancel(animation);
                     handle.setVisibility(INVISIBLE);
+                    notifyHandleListener(FastScrollerHandleState.HIDDEN);
                     currentHandleHideAnimator = null;
                 }
 
@@ -326,6 +345,7 @@ class FastScroller extends LinearLayout {
                 public void onAnimationEnd(Animator animation) {
                     super.onAnimationEnd(animation);
                     handle.setVisibility(INVISIBLE);
+                    notifyHandleListener(FastScrollerHandleState.HIDDEN);
                     currentHandleHideAnimator = null;
                 }
             });
@@ -409,5 +429,12 @@ class FastScroller extends LinearLayout {
             });
             currentBubbleHideAnimator.start();
         }
+    }
+
+    private void notifyHandleListener(FastScrollerHandleState state) {
+        // The event will be sent if we have a listener, and if it's either not a visibility event or we aren't eating
+        // the visibility events (and thus we don't care what it is).
+        if (handleStateListener != null && (!eatVisibilityUpdates || state == FastScrollerHandleState.PRESSED ||
+                state == FastScrollerHandleState.RELEASED)) handleStateListener.onHandleStateChanged(state);
     }
 }

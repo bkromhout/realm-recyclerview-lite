@@ -15,6 +15,7 @@ Please be sure to take a moment to look at the [Origin][Origin] section. You'll 
     * [Drag and Drop](#drag-and-drop)  
     * [Multi-Select](#multi-select)  
     * [Fast Scrolling](#fast-scrolling)  
+        * [Handle State Notifications](#handle-state-notifications)  
         * [Fast Scroller Customization](#fast-scroller-customization)  
 
 <a name="installation"/>
@@ -45,11 +46,9 @@ Please note that at this time, realm-recyclerview-lite has been tested and is ve
 ## Usage
 Adding a `RealmRecyclerView` to your layout is simple:
 ```xml
-<RelativeLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
     <com.bkromhout.rrvl.RealmRecyclerView
             android:id="@+id/recycler"
@@ -249,38 +248,45 @@ public String getFastScrollBubbleText(int position) {
 }
 ```
 
-And then in my [`MainActivity` class][MainActivity Class], I pass the adapter to the `RealmRecyclerView` both as the adapter (of course) and as the bubble text provider:
+And then in the sample app's [`MainActivity` class][MainActivity Class], I pass the adapter to the `RealmRecyclerView` both as the adapter (of course) and as the bubble text provider at the end of    `onCreate`, like this:
 ```java
-public class MainActivity extends AppCompatActivity {
-    @Bind(R.id.recycler)
-    RealmRecyclerView recyclerView;
+recyclerView.setAdapter(adapter);
+recyclerView.setBubbleTextProvider((ItemAdapter) adapter);
+```
 
-    private Realm realm;
-    private RealmBasedRecyclerViewAdapter adapter;
+That's all there is to it! Note that while I chose to have the adapter implement the `getFastScrollBubbleText` method in my example, you could have some other object implement it if you so choose. Just remember that all you're given to work with is a position, so that object would need to have a copy of the same `RealmResults` that your adapter has in the first place.
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
+<a name="handle-state-notifications"/>
+#### Handle State Notifications
+Having a fast scroller is great, but sadly Android's built-in classes, like `CoordinatorLayout`, don't really know about it, so in some cases you might need to do a bit of work yourself to make your views play nice.
 
-        realm = Realm.getDefaultInstance();
-        RealmResults<Item> items = realm.where(Item.class).findAllSorted("position");
-        adapter = new ItemAdapter(this, items);
-        recyclerView.setAdapter(adapter);
-        recyclerView.setBubbleTextProvider((ItemAdapter) adapter);
-    }
+A good example of this is when you have a `FloatingActionButton` on the screen with your `RealmRecyclerView`. While you *can* create a "behavior" which will cause the `FloatingActionButton` to automatically show/hide itself as you scroll the `RealmRecyclerView` up/down, that behavior class won't pick up on the scrolling done with the fast scroller, only normal scrolling 😞.
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        adapter.close();
-        realm.close();
+For my use case, I wanted the `FloatingActionButton` to hide itself when I grabbed the fast scroll handle, so I created the [`FastScrollHandleStateListener` interface][FastScrollHandleStateListener Class]. Here's how the sample's [`MainActivity`][MainActivity Class] implements it:
+```java
+@Override
+public void onHandleStateChanged(FastScrollerHandleState newState) {
+    switch (newState) {
+        case VISIBLE:
+            Log.d("MainActivity", "Handle visible.");
+            break;
+        case HIDDEN:
+            Log.d("MainActivity", "Handle hidden.");
+            break;
+        case PRESSED:
+            // Hide the FloatingActionButton.
+            fab.hide();
+            Log.d("MainActivity", "Handle pressed.");
+            break;
+        case RELEASED:
+            Log.d("MainActivity", "Handle released.");
+            break;
     }
 }
 ```
 
-That's all there is to it! Note that while I chose to have the adapter implement the `getFastScrollBubbleText` method in my example, you could have some other object implement it if you so choose. Just remember that all you're given to work with is a position, so that object would need to have a copy of the same `RealmResults` that your adapter has in the first place.
+While I've only used the `PRESSED` state to do something here, you can see that there are a total of four states which you'll be notified of.  
+Note that the `VISIBLE` and `HIDDEN` states are only triggered if you have auto-hide on, and they're triggered *after the show/hide animation completes*.
 
 <a name="fast-scroller-customization"/>
 #### Fast Scroller Customization
@@ -309,6 +315,7 @@ That, along with a number of other things, can be changed by overriding the foll
 [ItemAdapter Class]: sample/src/main/java/com/bkromhout/rrvl/sample/ItemAdapter.java
 [ItemDragHelper Class]: sample/src/main/java/com/bkromhout/rrvl/sample/ItemDragHelper.java
 [BubbleTextProvider Class]: library/src/main/java/com/bkromhout/rrvl/BubbleTextProvider.java
+[FastScrollHandleStateListener Class]: library/src/main/java/com/bkromhout/rrvl/FastScrollHandleStateListener.java
 [RealmBasedRecyclerViewAdapter Class]: library/src/main/java/io/realm/RealmBasedRecyclerViewAdapter.java
 [Ordering Notes]: md-files/ordering-scheme-notes.md
 [Origin]: md-files/origin.md

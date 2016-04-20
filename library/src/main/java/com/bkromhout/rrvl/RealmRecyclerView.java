@@ -13,34 +13,27 @@ import io.realm.RealmBasedRecyclerViewAdapter;
 
 /**
  * A RecyclerView that supports Realm.
- * <p/>
- * See {@link com.bkromhout.rrvl.R.styleable#RealmRecyclerView RealmRecyclerView Attributes}
- * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlEmptyLayoutId
- * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlDragAndDrop
- * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlDragStartTrigger
- * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlFastScrollEnabled
- * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlAutoHideFastScrollHandle
- * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlHandleAutoHideDelay
- * @attr ref com.bkromhout.rrvl.R.styleable#RealmRecyclerView_rrvlUseFastScrollBubble
  */
 public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyclerViewAdapter.StartDragListener {
-
+    // TODO this is useless, get rid of it.
     private enum DragTrigger {
         UserDefined, LongClick
     }
 
+    // Views.
     private RecyclerView recyclerView;
     private FastScroller fastScroller;
     private ViewStub emptyContentContainer;
-    private RealmBasedRecyclerViewAdapter adapter;
-    private ItemTouchHelper touchHelper;
-    private RealmSimpleItemTouchHelperCallback realmSimpleItemTouchHelperCallback;
 
-    // Attributes
+    // Attributes.
     private int emptyViewId;
     private boolean dragAndDrop;
     private DragTrigger dragTrigger;
     private boolean fastScrollEnabled;
+
+    private RealmBasedRecyclerViewAdapter adapter;
+    private ItemTouchHelper touchHelper;
+    private RealmSimpleItemTouchHelperCallback realmSimpleItemTouchHelperCallback;
 
     public RealmRecyclerView(Context context) {
         super(context);
@@ -242,6 +235,15 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
     @SuppressWarnings("unused")
     public final void setBubbleTextProvider(BubbleTextProvider bubbleTextProvider) {
         fastScroller.setBubbleTextProvider(bubbleTextProvider);
+    }
+
+    /**
+     * Set the fast scroll handle state listener to use.
+     * @param handleStateListener Fast scroll handle state listener.
+     */
+    @SuppressWarnings("unused")
+    public final void setFastScrollHandleStateListener(FastScrollHandleStateListener handleStateListener) {
+        fastScroller.setHandleStateListener(handleStateListener);
     }
 
     /**
