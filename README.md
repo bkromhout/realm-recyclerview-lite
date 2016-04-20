@@ -289,10 +289,9 @@ Realm (https://github.com/realm/realm-java)
 [Minerva]: https://github.com/bkromhout/Minerva
 [CHANGELOG]: CHANGELOG.md
 [RRV]: https://github.com/thorbenprimke/realm-recyclerview
-[DnD]: https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-b9456d2b1aaf#.y5o1j11jt
 [Item Class]: sample/src/main/java/com/bkromhout/rrvl/sample/Item.java
 [ItemAdapter Class]: sample/src/main/java/com/bkromhout/rrvl/sample/ItemAdapter.java
 [ItemDragHelper Class]: sample/src/main/java/com/bkromhout/rrvl/sample/ItemDragHelper.java
 [RealmBasedRecyclerViewAdapter Class]: library/src/main/java/io/realm/RealmBasedRecyclerViewAdapter.java
-[Ordering Notes]: md-file/ordering-scheme-notes.md
-[Origin]: md-file/origin.md
+[Ordering Notes]: md-files/ordering-scheme-notes.md
+[Origin]: md-files/origin.md
