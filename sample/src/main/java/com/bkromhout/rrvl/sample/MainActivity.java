@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
         RealmResults<Item> items = realm.where(Item.class).findAllSorted("position");
         adapter = new ItemAdapter(this, items);
         recyclerView.setAdapter(adapter);
+        recyclerView.setBubbleTextProvider((ItemAdapter) adapter);
     }
 
     @Override

@@ -19,7 +19,7 @@ import android.widget.TextView;
 /**
  * Implementation of a fast scroller for our RecyclerView.
  */
-public class FastScroller extends LinearLayout {
+class FastScroller extends LinearLayout {
     private static final int BUBBLE_ANIMATION_DURATION = 100;
     private static final int HANDLE_ANIMATION_DURATION = 100;
     static final int DEFAULT_HANDLE_HIDE_DELAY = 2000;
@@ -34,6 +34,7 @@ public class FastScroller extends LinearLayout {
     private boolean autoHideHandle = false;
     private int autoHideDelay = DEFAULT_HANDLE_HIDE_DELAY;
     private int height;
+    private BubbleTextProvider bubbleTextProvider = null;
     private ObjectAnimator currentBubbleShowAnimator = null;
     private ObjectAnimator currentBubbleHideAnimator = null;
     private ObjectAnimator currentHandleShowAnimator = null;
@@ -63,10 +64,6 @@ public class FastScroller extends LinearLayout {
             else showHandle();
         }
     };
-
-    public interface BubbleTextGetter {
-        String getFastScrollBubbleText(int position);
-    }
 
     public FastScroller(final Context context, final AttributeSet attrs, final int defStyleAttr) {
         super(context, attrs, defStyleAttr);
@@ -126,6 +123,14 @@ public class FastScroller extends LinearLayout {
     void setUseBubble(boolean useBubble) {
         if (this.useBubble && !useBubble) hideBubble();
         this.useBubble = useBubble;
+    }
+
+    /**
+     * Set the {@link BubbleTextProvider} to use.
+     * @param bubbleTextProvider Bubble text provider.
+     */
+    void setBubbleTextProvider(BubbleTextProvider bubbleTextProvider) {
+        this.bubbleTextProvider = bubbleTextProvider;
     }
 
     @Override
@@ -218,8 +223,9 @@ public class FastScroller extends LinearLayout {
             ((LinearLayoutManager) recyclerView.getLayoutManager()).scrollToPositionWithOffset(targetPos, 0);
 
             if (useBubble) {
-                String bubbleText = ((BubbleTextGetter) recyclerView.getAdapter()).getFastScrollBubbleText(targetPos);
-                bubble.setText(bubbleText);
+                if (bubbleTextProvider == null)
+                    throw new IllegalStateException("You haven't set a BubbleTextProvider.");
+                bubble.setText(bubbleTextProvider.getFastScrollBubbleText(targetPos));
             }
         }
     }

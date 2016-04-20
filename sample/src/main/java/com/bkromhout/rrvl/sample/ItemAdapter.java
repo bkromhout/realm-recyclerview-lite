@@ -8,13 +8,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import com.bkromhout.rrvl.BubbleTextProvider;
 import io.realm.RealmBasedRecyclerViewAdapter;
 import io.realm.RealmResults;
 
 /**
- * Simple item adapter. Supports drag and drop.
+ * Simple item adapter. Supports drag and drop and the fast scroller's bubble text.
  */
-public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter.ItemVH> {
+public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter.ItemVH> implements BubbleTextProvider {
 
     public ItemAdapter(Context context, RealmResults<Item> realmResults) {
         super(context, realmResults, true, true, null);
@@ -73,7 +74,8 @@ public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter
 
     @Override
     public String getFastScrollBubbleText(int position) {
-        return String.valueOf(realmResults.get(position).name.charAt(0));
+        if (position > 50) return null;
+        else return String.valueOf(realmResults.get(position).name.charAt(0));
     }
 
     static class ItemVH extends RecyclerView.ViewHolder {

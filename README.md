@@ -97,14 +97,14 @@ public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter
 }
 ```
 
-If you look at the actual [`ItemAdapter` class][ItemAdapter Class], you'll notice that there are many other things present in it. We'll get to those as we discuss the features, this is meant to be a bare-bones example implementation.
+If you look at the actual [`ItemAdapter` class][ItemAdapter Class], you'll notice that there are many other things present in it. We'll get to those as we discuss the features, this is just a bare-bones implementation.
 
-To set your adapter to a `RealmRecyclerView`, you simply call `void setAdapter(final RealmBasedRecyclerViewAdapter adapter)`.
+To set your adapter to a `RealmRecyclerView`, you simply call its `setAdapter` method.
 
 A couple more points of note:
 * `RealmRecyclerView` supports **`LinearLayoutManager` only**
-* `RealmRecyclerView` is *not* actually a `RecyclerView` subclass, it's a `RelativeLayout`. If you need access to the real `RecyclerView` or `LinearLayoutManager` instances for some reason, you can use the `getRecyclerView()` and `getLayoutManager()` methods
-* When you're done using an adapter (such as when an Activity or Fragment is being destroyed), be sure to call its `close()` method to prevent any possible Realm instance leaks
+* `RealmRecyclerView` is *not* actually a `RecyclerView` subclass, it's a `RelativeLayout`. If you need access to the real `RecyclerView` or `LinearLayoutManager` instances for some reason, you can use the `getRecyclerView` and `getLayoutManager` methods
+* When you're done using an adapter (such as when an Activity or Fragment is being destroyed), be sure to call its `close` method to prevent any possible Realm instance leaks
 
 <a name="features"/>
 ## Features
@@ -239,7 +239,9 @@ Here's what the attributes (and their associated methods on `RealmRecyclerView`)
 
 Other than the last one, these attributes are all you need to set if you want to have fast scrolling functionality.
 
-To have the fast scroller show a bubble (akin to the stock Android Contacts app), you need to both set that last one to `true` as well as have your adapter override the `getFastScrollBubbleText(int)` method. Here's how the [`ItemAdapter` class][ItemAdapter Class] does it:
+To have the fast scroller show a bubble (akin to the stock Android Contacts app), you need to both set that last one to `true` as well as have some class implement the [`BubbleTextProvider` interface][BubbleTextProvider Class], which defines one method, `getFastScrollBubbleText`. That method provides the position of the item in the adapter and expects the text which should be shown in the bubble in return.
+
+In the sample application, I've chosen to have my [`ItemAdapter` class][ItemAdapter Class] implement this method like so:
 ```java
 @Override
 public String getFastScrollBubbleText(int position) {
@@ -247,7 +249,38 @@ public String getFastScrollBubbleText(int position) {
 }
 ```
 
-That's it. It makes use of the fact that, as the adapter, it has direct access to the `RealmResults` object which is providing the data to populate the adapter.
+And then in my [`MainActivity` class][MainActivity Class], I pass the adapter to the `RealmRecyclerView` both as the adapter (of course) and as the bubble text provider:
+```java
+public class MainActivity extends AppCompatActivity {
+    @Bind(R.id.recycler)
+    RealmRecyclerView recyclerView;
+
+    private Realm realm;
+    private RealmBasedRecyclerViewAdapter adapter;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
+
+        realm = Realm.getDefaultInstance();
+        RealmResults<Item> items = realm.where(Item.class).findAllSorted("position");
+        adapter = new ItemAdapter(this, items);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setBubbleTextProvider((ItemAdapter) adapter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        adapter.close();
+        realm.close();
+    }
+}
+```
+
+That's all there is to it! Note that while I chose to have the adapter implement the `getFastScrollBubbleText` method in my example, you could have some other object implement it if you so choose. Just remember that all you're given to work with is a position, so that object would need to have a copy of the same `RealmResults` that your adapter has in the first place.
 
 <a name="fast-scroller-customization"/>
 #### Fast Scroller Customization
@@ -271,9 +304,11 @@ That, along with a number of other things, can be changed by overriding the foll
 [Minerva]: https://github.com/bkromhout/Minerva
 [CHANGELOG]: CHANGELOG.md
 [RRV]: https://github.com/thorbenprimke/realm-recyclerview
+[MainActivity Class]: sample/src/main/java/com/bkromhout/rrvl/sample/MainActivity.java
 [Item Class]: sample/src/main/java/com/bkromhout/rrvl/sample/Item.java
 [ItemAdapter Class]: sample/src/main/java/com/bkromhout/rrvl/sample/ItemAdapter.java
 [ItemDragHelper Class]: sample/src/main/java/com/bkromhout/rrvl/sample/ItemDragHelper.java
+[BubbleTextProvider Class]: library/src/main/java/com/bkromhout/rrvl/BubbleTextProvider.java
 [RealmBasedRecyclerViewAdapter Class]: library/src/main/java/io/realm/RealmBasedRecyclerViewAdapter.java
 [Ordering Notes]: md-files/ordering-scheme-notes.md
 [Origin]: md-files/origin.md

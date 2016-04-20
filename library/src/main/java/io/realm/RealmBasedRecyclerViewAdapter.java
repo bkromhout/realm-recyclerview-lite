@@ -21,7 +21,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import com.bkromhout.rrvl.FastScroller;
 import com.bkromhout.rrvl.RealmRecyclerView;
 import com.bkromhout.rrvl.RealmSimpleItemTouchHelperCallback;
 import difflib.Delta;
@@ -37,7 +36,7 @@ import java.util.List;
  * The base {@link RecyclerView.Adapter} that includes custom functionality to be used with {@link RealmRecyclerView}.
  */
 public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH extends RecyclerView.ViewHolder> extends
-        RecyclerView.Adapter<VH> implements RealmSimpleItemTouchHelperCallback.Listener, FastScroller.BubbleTextGetter {
+        RecyclerView.Adapter<VH> implements RealmSimpleItemTouchHelperCallback.Listener {
     private static final String SEL_POSITIONS_KEY = "rrvl-state-key-selected-positions";
 
     /**
@@ -114,19 +113,6 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
 
     public final void setOnStartDragListener(StartDragListener startDragListener) {
         this.startDragListener = startDragListener;
-    }
-
-    /**
-     * Get the text which should be shown in the fast scroller's bubble for the item at {@code position}.
-     * <p/>
-     * This method returns null by default. It only needs to be implemented if {@link RealmRecyclerView} had the XML
-     * attribute {@code rrvlFastScrollMode} set to {@code "Handle_Bubble"}.
-     * @param position Position of the item to return text for.
-     * @return Text to show in the fast scroller's bubble.
-     */
-    @Override
-    public String getFastScrollBubbleText(int position) {
-        return null;
     }
 
     /**
