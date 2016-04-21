@@ -84,22 +84,6 @@ class FastScroller extends LinearLayout {
         handle = findViewById(R.id.fast_scroller_handle);
     }
 
-    /**
-     * Whether or not to automatically hide the handle if it hasn't been touched of the recycler view hasn't been
-     * scrolled for a certain amount of time. False by default.
-     * @param autoHideHandle Whether to automatically hide the handle (true), or to keep it visible (false).
-     */
-    void setAutoHideHandle(boolean autoHideHandle) {
-        if (this.autoHideHandle && !autoHideHandle) {
-            // Changing auto-hide from on to off.
-            showHandle();
-        } else if (!this.autoHideHandle && autoHideHandle) {
-            // Changing auto-hide from off to on.
-            hideHandle();
-        }
-        this.autoHideHandle = autoHideHandle;
-    }
-
     void setRecyclerView(final RecyclerView recyclerView) {
         if (this.recyclerView != recyclerView) {
             if (this.recyclerView != null) this.recyclerView.removeOnScrollListener(onScrollListener);
@@ -128,6 +112,30 @@ class FastScroller extends LinearLayout {
             });
     }
 
+    boolean getAutoHideHandle() {
+        return autoHideHandle;
+    }
+
+    /**
+     * Whether or not to automatically hide the handle if it hasn't been touched of the recycler view hasn't been
+     * scrolled for a certain amount of time. False by default.
+     * @param autoHideHandle Whether to automatically hide the handle (true), or to keep it visible (false).
+     */
+    void setAutoHideHandle(boolean autoHideHandle) {
+        if (this.autoHideHandle && !autoHideHandle) {
+            // Changing auto-hide from on to off.
+            showHandle();
+        } else if (!this.autoHideHandle && autoHideHandle) {
+            // Changing auto-hide from off to on.
+            hideHandle();
+        }
+        this.autoHideHandle = autoHideHandle;
+    }
+
+    int getAutoHideDelay() {
+        return autoHideDelay;
+    }
+
     /**
      * Set the delay (in ms) before the handle auto-hides. {@link #DEFAULT_HANDLE_HIDE_DELAY} is the default.
      * @param autoHideDelay Time in milliseconds to delay before auto-hiding the handle. If < 0, the default will be
@@ -136,6 +144,10 @@ class FastScroller extends LinearLayout {
     void setAutoHideDelay(int autoHideDelay) {
         if (autoHideDelay < 0) this.autoHideDelay = DEFAULT_HANDLE_HIDE_DELAY;
         else this.autoHideDelay = autoHideDelay;
+    }
+
+    boolean getUseBubble() {
+        return useBubble;
     }
 
     /**

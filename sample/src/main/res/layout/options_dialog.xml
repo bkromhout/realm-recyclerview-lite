@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:paddingStart="8dp"
+              android:paddingEnd="8dp">
+
+    <CheckBox
+            android:id="@+id/drag_and_drop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical"
+            android:text="@string/drag_and_drop"
+            style="@style/TextAppearance.AppCompat.Medium"/>
+
+    <CheckBox
+            android:id="@+id/long_click_triggers_drag"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical"
+            android:text="@string/long_click_triggers_drag"
+            style="@style/TextAppearance.AppCompat.Medium"/>
+
+    <CheckBox
+            android:id="@+id/fast_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical"
+            android:text="@string/fast_scroll"
+            style="@style/TextAppearance.AppCompat.Medium"/>
+
+    <CheckBox
+            android:id="@+id/auto_hide_handle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical"
+            android:text="@string/auto_hide_handle"
+            style="@style/TextAppearance.AppCompat.Medium"/>
+
+    <TextView
+            android:id="@+id/lbl_auto_hide_delay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/handle_auto_hide_delay"/>
+
+    <EditText
+            android:id="@+id/auto_hide_delay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:digits="0123456789"
+            android:inputType="number"
+            android:hint="@string/handle_auto_hide_delay"/>
+
+    <CheckBox
+            android:id="@+id/use_bubble"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical"
+            android:text="@string/use_bubble"
+            style="@style/TextAppearance.AppCompat.Medium"/>
+</LinearLayout>

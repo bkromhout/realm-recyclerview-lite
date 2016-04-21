@@ -17,8 +17,12 @@ public class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback
         this.longClickTriggersDrag = longClickTriggersDrag;
     }
 
-    void setDragAndDrop (boolean enabled) {
+    void setDragAndDrop(boolean enabled) {
         this.dragAndDrop = enabled;
+    }
+
+    boolean getLongClickTriggersDrag() {
+        return longClickTriggersDrag;
     }
 
     void setLongClickTriggersDrag(boolean longClickTriggersDrag) {

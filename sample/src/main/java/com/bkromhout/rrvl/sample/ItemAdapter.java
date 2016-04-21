@@ -1,9 +1,12 @@
 package com.bkromhout.rrvl.sample;
 
 import android.content.Context;
+import android.support.v4.view.MotionEventCompat;
 import android.support.v7.widget.RecyclerView;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import butterknife.Bind;
@@ -38,13 +41,13 @@ public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter
         holder.name.setText(item.name);
         // We set the unique ID as the tag on a view so that we will be able to get it in the onMove() method.
         holder.content.setTag(item.uniqueId);
-        // Long click should start drag mode.
-        holder.content.setOnLongClickListener(new View.OnLongClickListener() {
+        // Grabbing the drag handle should trigger a drag.
+        holder.dragHandle.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public boolean onLongClick(View v) {
-                // Explicitly start the drag.
-                startDragging(holder);
-                return true;
+            public boolean onTouch(View v, MotionEvent event) {
+                if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN)
+                    startDragging(holder);
+                return false;
             }
         });
     }
@@ -81,6 +84,8 @@ public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter
     static class ItemVH extends RecyclerView.ViewHolder {
         @Bind(R.id.content)
         RelativeLayout content;
+        @Bind(R.id.drag_handle)
+        ImageView dragHandle;
         @Bind(R.id.name)
         TextView name;
 

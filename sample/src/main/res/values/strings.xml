@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">RRVL Sample</string>
+    <string name="ok">OK</string>
+    <string name="options">Options</string>
+    <string name="drag_and_drop">Drag and Drop</string>
+    <string name="long_click_triggers_drag">Long Click Triggers Drag</string>
+    <string name="fast_scroll">Fast Scroll</string>
+    <string name="auto_hide_handle">Auto-Hide Handle</string>
+    <string name="auto_hide_handle_hint">Delay (milliseconds)</string>
+    <string name="handle_auto_hide_delay">Auto-Hide Delay</string>
+    <string name="use_bubble">Use Fast Scroll Bubble</string>
 </resources>

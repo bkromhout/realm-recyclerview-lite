@@ -13,6 +13,8 @@ import io.realm.RealmBasedRecyclerViewAdapter;
 
 /**
  * A RecyclerView that supports Realm.
+ * <p/>
+ * TODO Getters
  */
 public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyclerViewAdapter.StartDragListener {
     // Views.
@@ -173,6 +175,14 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
     }
 
     /**
+     * Get whether drag and drop is enabled.
+     * @return Whether drag and drop is enabled or not.
+     */
+    public final boolean getDragAndDrop() {
+        return dragAndDrop;
+    }
+
+    /**
      * Enable/Disable drag and drop.
      * @param enabled Whether to allow drag and drop.
      */
@@ -182,11 +192,27 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
     }
 
     /**
+     * Get whether long click triggers drags.
+     * @return Whether long click triggers drags or not.
+     */
+    public final boolean getLongClickTriggersDrag() {
+        return touchHelperCallback.getLongClickTriggersDrag();
+    }
+
+    /**
      * Whether to use long click to trigger the drag or not.
      * @param longClickTriggersDrag Whether to allow long clicks to start drags.
      */
     public final void setLongClickTriggersDrag(boolean longClickTriggersDrag) {
         touchHelperCallback.setLongClickTriggersDrag(longClickTriggersDrag);
+    }
+
+    /**
+     * Get whether fast scrolling is enabled.
+     * @return Whether fast scrolling is enabled or not.
+     */
+    public final boolean getFastScroll() {
+        return fastScrollEnabled;
     }
 
     /**
@@ -202,12 +228,28 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
     }
 
     /**
+     * Get whether the fast scroller's handle is set to auto-hide.
+     * @return Whether the fast scroller's handle is set to auto-hide or not.
+     */
+    public final boolean getAutoHideFastScrollHandle() {
+        return fastScroller.getAutoHideHandle();
+    }
+
+    /**
      * Set whether the fast scroller handle will auto-hide or stay visible.
      * @param autoHide Whether to auto-hide the fast scroller handle or not.
      */
     @SuppressWarnings("unused")
     public final void setAutoHideFastScrollHandle(boolean autoHide) {
         fastScroller.setAutoHideHandle(autoHide);
+    }
+
+    /**
+     * Get the delay (in milliseconds) before which the fast scroller handle with auto-hide.
+     * @return Auto-hide delay.
+     */
+    public final int getHandleAutoHideDelay() {
+        return fastScroller.getAutoHideDelay();
     }
 
     /**
@@ -218,6 +260,14 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
     @SuppressWarnings("unused")
     public final void setHandleAutoHideDelay(int autoHideDelay) {
         fastScroller.setAutoHideDelay(autoHideDelay);
+    }
+
+    /**
+     * Get whether the fast scroller's bubble is being used.
+     * @return Whether the fast scroller's bubble is being used or not.
+     */
+    public final boolean getUseFastScrollBubble() {
+        return fastScroller.getUseBubble();
     }
 
     /**
