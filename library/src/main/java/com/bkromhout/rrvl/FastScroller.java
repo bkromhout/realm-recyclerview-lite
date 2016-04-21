@@ -23,7 +23,7 @@ class FastScroller extends LinearLayout {
     private static final int BUBBLE_ANIMATION_DURATION = 100;
     private static final int HANDLE_ANIMATION_DURATION = 100;
     static final int DEFAULT_HANDLE_HIDE_DELAY = 2000;
-    private static final int TRACK_SNAP_RANGE = 5;
+    private static final int TRACK_SNAP_RANGE = 0;
 
     private View handle;
     private TextView bubble;
@@ -48,14 +48,15 @@ class FastScroller extends LinearLayout {
      */
     private final RecyclerView.OnScrollListener onScrollListener = new RecyclerView.OnScrollListener() {
         @Override
-        public void onScrolled(final RecyclerView recyclerView, final int dx, final int dy) {
+        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
             if (handle.isSelected()) return;
 
-            final int verticalScrollOffset = recyclerView.computeVerticalScrollOffset();
-            final int verticalScrollRange = recyclerView.computeVerticalScrollRange();
-            float proportion = (float) verticalScrollOffset / ((float) verticalScrollRange - height);
+            int scrollOffset = recyclerView.computeVerticalScrollOffset();
+            int scrollRange = recyclerView.computeVerticalScrollRange();
+            int scrollExtent = recyclerView.computeVerticalScrollExtent();
+            float proportion = computeProportion(scrollOffset, scrollRange, scrollExtent);
 
-            setBubbleAndHandlePosition(height * proportion);
+            setBubbleAndHandlePosition(height * proportion, proportion);
         }
 
         @Override
@@ -67,15 +68,15 @@ class FastScroller extends LinearLayout {
         }
     };
 
-    public FastScroller(final Context context) {
+    public FastScroller(Context context) {
         this(context, null, 0);
     }
 
-    public FastScroller(final Context context, final AttributeSet attrs) {
+    public FastScroller(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public FastScroller(final Context context, final AttributeSet attrs, final int defStyleAttr) {
+    public FastScroller(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setOrientation(HORIZONTAL);
         setClipChildren(false);
@@ -98,6 +99,34 @@ class FastScroller extends LinearLayout {
             hideHandle();
         }
         this.autoHideHandle = autoHideHandle;
+    }
+
+    void setRecyclerView(final RecyclerView recyclerView) {
+        if (this.recyclerView != recyclerView) {
+            if (this.recyclerView != null) this.recyclerView.removeOnScrollListener(onScrollListener);
+
+            this.recyclerView = recyclerView;
+            if (this.recyclerView == null) return;
+
+            recyclerView.addOnScrollListener(onScrollListener);
+        }
+
+        if (recyclerView != null)
+            recyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                @Override
+                public boolean onPreDraw() {
+                    recyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
+                    if (handle.isSelected()) return true;
+
+                    int scrollOffset = recyclerView.computeVerticalScrollOffset();
+                    int scrollRange = recyclerView.computeVerticalScrollRange();
+                    int scrollExtent = recyclerView.computeVerticalScrollExtent();
+                    float proportion = computeProportion(scrollOffset, scrollRange, scrollExtent);
+
+                    setBubbleAndHandlePosition(height * proportion, proportion);
+                    return true;
+                }
+            });
     }
 
     /**
@@ -142,8 +171,17 @@ class FastScroller extends LinearLayout {
     }
 
     @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (recyclerView != null) {
+            recyclerView.removeOnScrollListener(onScrollListener);
+            recyclerView = null;
+        }
+    }
+
+    @Override
     public boolean onTouchEvent(@NonNull MotionEvent event) {
-        final int action = event.getAction();
+        int action = event.getAction();
         switch (action) {
             case MotionEvent.ACTION_DOWN:
                 // If the handle isn't visible, or it is but the touch event isn't on the handle, ignore this.
@@ -160,7 +198,7 @@ class FastScroller extends LinearLayout {
                 // If we have auto-hide turned on, make sure the handle is shown.
                 if (autoHideHandle) showHandle();
                 // Set the positions of the bubble (unless we aren't using it), the handle, and the recyclerview.
-                final float y = event.getY();
+                float y = event.getY();
                 setBubbleAndHandlePosition(y);
                 setRecyclerViewPosition(y);
                 return true;
@@ -178,52 +216,16 @@ class FastScroller extends LinearLayout {
         return super.onTouchEvent(event);
     }
 
-    void setRecyclerView(final RecyclerView recyclerView) {
-        if (this.recyclerView != recyclerView) {
-            if (this.recyclerView != null) this.recyclerView.removeOnScrollListener(onScrollListener);
-
-            this.recyclerView = recyclerView;
-            if (this.recyclerView == null) return;
-
-            recyclerView.addOnScrollListener(onScrollListener);
-        }
-
-        if (recyclerView != null)
-            recyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                @Override
-                public boolean onPreDraw() {
-                    recyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
-                    if (handle.isSelected()) return true;
-
-                    final int verticalScrollOffset = recyclerView.computeVerticalScrollOffset();
-                    final int verticalScrollRange = recyclerView.computeVerticalScrollRange();
-                    float proportion = (float) verticalScrollOffset / ((float) verticalScrollRange - height);
-
-                    setBubbleAndHandlePosition(height * proportion);
-                    return true;
-                }
-            });
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        if (recyclerView != null) {
-            recyclerView.removeOnScrollListener(onScrollListener);
-            recyclerView = null;
-        }
-    }
-
     private void setRecyclerViewPosition(float y) {
         if (recyclerView != null) {
-            final int itemCount = recyclerView.getAdapter().getItemCount();
+            int itemCount = recyclerView.getAdapter().getItemCount();
             float proportion;
 
             if (handle.getY() == 0) proportion = 0f;
             else if (handle.getY() + handle.getHeight() >= height - TRACK_SNAP_RANGE) proportion = 1f;
             else proportion = y / (float) height;
 
-            final int targetPos = getValueInRange(0, itemCount - 1, (int) (proportion * (float) itemCount));
+            int targetPos = (int) getValueInRange(0, itemCount - 1, proportion * (float) itemCount);
             ((LinearLayoutManager) recyclerView.getLayoutManager()).scrollToPositionWithOffset(targetPos, 0);
 
             if (useBubble) {
@@ -234,19 +236,28 @@ class FastScroller extends LinearLayout {
         }
     }
 
-    private int getValueInRange(int min, int max, int value) {
-        int minimum = Math.max(min, value);
+    private void setBubbleAndHandlePosition(float y) {
+        setBubbleAndHandlePosition(y, 0.5f);
+    }
+
+    private void setBubbleAndHandlePosition(float y, float proportion) {
+        int handleHeight = handle.getHeight();
+
+        handle.setY(getValueInRange(0, height - handleHeight, y - handleHeight * proportion));
+        if (useBubble) {
+            int bubbleHeight = bubble.getHeight();
+            bubble.setY(getValueInRange(0, height - bubbleHeight - handleHeight / 2, y - bubbleHeight));
+        }
+    }
+
+    private float getValueInRange(float min, float max, float value) {
+        float minimum = Math.max(min, value);
         return Math.min(minimum, max);
     }
 
-    private void setBubbleAndHandlePosition(float y) {
-        final int handleHeight = handle.getHeight();
-
-        handle.setY(getValueInRange(0, height - handleHeight, (int) (y - handleHeight / 2)));
-        if (useBubble) {
-            int bubbleHeight = bubble.getHeight();
-            bubble.setY(getValueInRange(0, height - bubbleHeight - handleHeight / 2, (int) (y - bubbleHeight)));
-        }
+    private float computeProportion(int scrollOffset, int scrollRange, int scrollExtent) {
+        float maxProportion = scrollRange - scrollExtent;
+        return (float) scrollOffset / maxProportion;
     }
 
     /**

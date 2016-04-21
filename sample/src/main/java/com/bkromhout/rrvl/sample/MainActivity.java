@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.widget.Toast;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -23,7 +22,7 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
 
     private Realm realm;
     private RealmBasedRecyclerViewAdapter adapter;
-    private boolean isBubbleOn = true;
+    private boolean isAutoHide = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,9 +47,8 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
 
     @OnClick(R.id.fab)
     void onFabClick() {
-        isBubbleOn = !isBubbleOn;
-        recyclerView.setUseFastScrollBubble(isBubbleOn);
-        Toast.makeText(this, "Fast Scroll Bubble turned " + (isBubbleOn ? "on." : "off."), Toast.LENGTH_SHORT).show();
+        isAutoHide = !isAutoHide;
+        recyclerView.setAutoHideFastScrollHandle(isAutoHide);
     }
 
     @Override
