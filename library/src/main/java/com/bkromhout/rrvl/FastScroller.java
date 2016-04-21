@@ -23,7 +23,6 @@ class FastScroller extends LinearLayout {
     private static final int BUBBLE_ANIMATION_DURATION = 100;
     private static final int HANDLE_ANIMATION_DURATION = 100;
     static final int DEFAULT_HANDLE_HIDE_DELAY = 2000;
-    private static final int TRACK_SNAP_RANGE = 0;
 
     private View handle;
     private TextView bubble;
@@ -199,8 +198,8 @@ class FastScroller extends LinearLayout {
                 if (autoHideHandle) showHandle();
                 // Set the positions of the bubble (unless we aren't using it), the handle, and the recyclerview.
                 float y = event.getY();
-                setBubbleAndHandlePosition(y);
                 setRecyclerViewPosition(y);
+                setBubbleAndHandlePosition(y);
                 return true;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
@@ -222,8 +221,8 @@ class FastScroller extends LinearLayout {
             float proportion;
 
             if (handle.getY() == 0) proportion = 0f;
-            else if (handle.getY() + handle.getHeight() >= height - TRACK_SNAP_RANGE) proportion = 1f;
-            else proportion = y / (float) height;
+            else if (handle.getY() + handle.getHeight() >= height) proportion = 1f;
+            else proportion = y / ((float) height + (float) handle.getHeight());
 
             int targetPos = (int) getValueInRange(0, itemCount - 1, proportion * (float) itemCount);
             ((LinearLayoutManager) recyclerView.getLayoutManager()).scrollToPositionWithOffset(targetPos, 0);
