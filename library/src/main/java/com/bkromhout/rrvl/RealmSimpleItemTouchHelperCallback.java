@@ -8,11 +8,11 @@ import android.support.v7.widget.helper.ItemTouchHelper;
  * href="https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-b9456d2b1aaf">this article</a>.
  */
 public class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
-    private final boolean isDragTriggerLongPress;
+    private final boolean isDragTriggerLongClick;
     private Listener listener;
 
-    public RealmSimpleItemTouchHelperCallback(boolean isDragTriggerLongPress) {
-        this.isDragTriggerLongPress = isDragTriggerLongPress;
+    public RealmSimpleItemTouchHelperCallback(boolean isDragTriggerLongClick) {
+        this.isDragTriggerLongClick = isDragTriggerLongClick;
     }
 
     public void setListener(Listener listener) {
@@ -21,7 +21,7 @@ public class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback
 
     @Override
     public boolean isLongPressDragEnabled() {
-        return isDragTriggerLongPress;
+        return isDragTriggerLongClick;
     }
 
     @Override

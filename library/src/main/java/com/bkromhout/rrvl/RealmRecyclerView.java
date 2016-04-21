@@ -15,11 +15,6 @@ import io.realm.RealmBasedRecyclerViewAdapter;
  * A RecyclerView that supports Realm.
  */
 public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyclerViewAdapter.StartDragListener {
-    // TODO this is useless, get rid of it.
-    private enum DragTrigger {
-        UserDefined, LongClick
-    }
-
     // Views.
     private RecyclerView recyclerView;
     private FastScroller fastScroller;
@@ -28,7 +23,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
     // Attributes.
     private int emptyViewId;
     private boolean dragAndDrop;
-    private DragTrigger dragTrigger;
+    private boolean longClickTriggersDrag;
     private boolean fastScrollEnabled;
 
     private RealmBasedRecyclerViewAdapter adapter;
@@ -55,19 +50,16 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
 
         // Read attributes.
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.RealmRecyclerView);
-        emptyViewId = typedArray.getResourceId(R.styleable.RealmRecyclerView_rrvlEmptyLayoutId, 0);
+        emptyViewId = typedArray.getResourceId(R.styleable.RealmRecyclerView_emptyLayoutId, 0);
         // Drag and drop attributes.
-        dragAndDrop = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlDragAndDrop, false);
-        int dragStartTriggerVal = typedArray.getInt(R.styleable.RealmRecyclerView_rrvlDragStartTrigger, -1);
-        dragTrigger = dragStartTriggerVal != -1 ? DragTrigger.values()[dragStartTriggerVal] : DragTrigger.UserDefined;
+        dragAndDrop = typedArray.getBoolean(R.styleable.RealmRecyclerView_dragAndDrop, false);
+        longClickTriggersDrag = typedArray.getBoolean(R.styleable.RealmRecyclerView_longClickTriggersDrag, false);
         // Fast scroll attributes.
-        fastScrollEnabled = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlFastScrollEnabled, false);
-        boolean autoHideHandle = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlAutoHideFastScrollHandle,
-                false);
-        int handleAutoHideDelay = typedArray.getInt(R.styleable.RealmRecyclerView_rrvlHandleAutoHideDelay,
+        fastScrollEnabled = typedArray.getBoolean(R.styleable.RealmRecyclerView_fastScroll, false);
+        boolean autoHideHandle = typedArray.getBoolean(R.styleable.RealmRecyclerView_autoHideFastScrollHandle, false);
+        int handleAutoHideDelay = typedArray.getInt(R.styleable.RealmRecyclerView_handleAutoHideDelay,
                 FastScroller.DEFAULT_HANDLE_HIDE_DELAY);
-        boolean useFastScrollBubble = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlUseFastScrollBubble,
-                false);
+        boolean useFastScrollBubble = typedArray.getBoolean(R.styleable.RealmRecyclerView_useFastScrollBubble, false);
         typedArray.recycle();
 
         // Get views.
@@ -105,8 +97,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
 
         // Drag and drop.
         if (dragAndDrop) {
-            realmSimpleItemTouchHelperCallback = new RealmSimpleItemTouchHelperCallback(
-                    dragTrigger == DragTrigger.LongClick);
+            realmSimpleItemTouchHelperCallback = new RealmSimpleItemTouchHelperCallback(longClickTriggersDrag);
             touchHelper = new ItemTouchHelper(realmSimpleItemTouchHelperCallback);
             touchHelper.attachToRecyclerView(recyclerView);
         }
@@ -140,7 +131,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
         recyclerView.setAdapter(adapter);
 
         if (dragAndDrop) realmSimpleItemTouchHelperCallback.setListener(adapter);
-        if (dragAndDrop && dragTrigger == DragTrigger.UserDefined) adapter.setOnStartDragListener(this);
+        if (dragAndDrop && !longClickTriggersDrag) adapter.setOnStartDragListener(this);
 
         if (adapter != null) {
             adapter.registerAdapterDataObserver(
@@ -190,7 +181,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
      * @param enabled Whether to enable the fast scroller or not.
      */
     @SuppressWarnings("unused")
-    public final void setFastScrollEnabled(boolean enabled) {
+    public final void setFastScroll(boolean enabled) {
         this.fastScrollEnabled = enabled;
         recyclerView.setVerticalScrollBarEnabled(!enabled);
         fastScroller.setVisibility(enabled ? VISIBLE : GONE);

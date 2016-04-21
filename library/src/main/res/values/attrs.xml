@@ -2,24 +2,21 @@
 <resources>
     <declare-styleable name="RealmRecyclerView">
         <!-- Layout resource ID to inflate and use as an empty view. None by default. -->
-        <attr name="rrvlEmptyLayoutId" format="reference"/>
+        <attr name="emptyLayoutId" format="reference"/>
         <!-- Whether to enable drag and drop or not. False by default. -->
-        <attr name="rrvlDragAndDrop" format="boolean"/>
-        <!-- What to use to trigger the start of a view drag. UserDefined by default. -->
-        <attr name="rrvlDragStartTrigger">
-            <enum name="UserDefined" value="0"/>
-            <enum name="LongClick" value="1"/>
-        </attr>
+        <attr name="dragAndDrop" format="boolean"/>
+        <!-- Whether long clicking a view will cause a drag to be started. False by default. -->
+        <attr name="longClickTriggersDrag" format="boolean"/>
         <!-- Whether to enable the fast scroller. False by default.
              Also see the "rrvlUseFastScrollBubble" and "rrvlAutoHideFastScrollHandle". -->
-        <attr name="rrvlFastScrollEnabled" format="boolean"/>
+        <attr name="fastScroll" format="boolean"/>
         <!-- Whether to auto-hide the fast scroller's handle. False by default (handle will stay visible). -->
-        <attr name="rrvlAutoHideFastScrollHandle" format="boolean"/>
+        <attr name="autoHideFastScrollHandle" format="boolean"/>
         <!-- If fast scroller handle auto-hiding is turned on, this is the amount of time the handle will stay visible
              before hiding. 2000 ms by default. Values below 0 are ignored. -->
-        <attr name="rrvlHandleAutoHideDelay" format="integer"/>
+        <attr name="handleAutoHideDelay" format="integer"/>
         <!-- Whether to use the fast scroller's section bubble. False by default. If set to true, be sure to have your
              adapter override {@link RealmBasedRecyclerViewAdapter#getFastScrollBubbleText(int)}. -->
-        <attr name="rrvlUseFastScrollBubble" format="boolean"/>
+        <attr name="useFastScrollBubble" format="boolean"/>
     </declare-styleable>
 </resources>

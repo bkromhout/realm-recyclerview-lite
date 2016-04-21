@@ -13,6 +13,7 @@ Please be sure to take a moment to look at the [Origin][Origin] section. You'll 
 * [Usage](#usage)
 * [Features](#features)  
     * [Drag and Drop](#drag-and-drop)  
+        * [Long Click as the Drag Trigger](#long-click-drag-trigger)  
     * [Multi-Select](#multi-select)  
     * [Fast Scrolling](#fast-scrolling)  
         * [Handle State Notifications](#handle-state-notifications)  
@@ -114,16 +115,14 @@ Drag and drop can be a tricky feature to implement in the first place since your
 
 There are a few things which must be done to get drag and drop working properly. Keep in mind as you read through these steps that my preferred design choices may not line up exactly with yours; I've tried to keep this in mind to allow you maximum flexibility.
 
-First, you need to enable drag and drop functionality. Currently the only way to do this is by adding the `rrvlDragAndDrop` attribute to your `RealmRecyclerView` in your layout and have it set to `true`:
+First, you need to enable drag and drop functionality. Currently the only way to do this is by adding the `dragAndDrop` attribute to your `RealmRecyclerView` in your layout and have it set to `true`:
 ```xml
 <com.bkromhout.rrvl.RealmRecyclerView
         android:id="@+id/recycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:rrvlDragAndDrop="true"
-        app:rrvlDragStartTrigger="UserDefined"/>
+        app:dragAndDrop="true"/>
 ```
-You've likely noticed already that I have an extra attribute called `rrvlDragStartTrigger` here too. The value I've given it, `UserDefined`, is its default value, so you don't really need to add it if you don't wish to. We'll talk about its alternative value a bit later on.
 
 Now we move back to your adapter. For drag and drop to work, you need to override the `onMove` method. You also need to add a bit more to your overridden `onBindViewHolder` method than it had before. These are the full methods from the sample app's [`ItemAdapter` class][ItemAdapter Class]:
 ```java
@@ -186,10 +185,31 @@ Don't make the same mistakes I did and waste your own time; handle all three cas
 
 You should also notice that nowhere in this code, be it the `onMove` method above or the methods in `ItemDragHelper`, do we call *any* of the `notify*Changed` methods. This is intended, because `RealmBasedRecyclerViewAdapter` handles making the correct calls for you when it detects the changes you've made to your data (it relies on a `RealmChangeListener` to get these notifications, and if you wish to see how it decides which of the `notify*Changed` methods to call, take a look at the [`RealmBasedRecyclerViewAdapter` class][RealmBasedRecyclerViewAdapter Class]).
 
-Now, getting back to that `rrvlDragStartTrigger` attribute. As I mentioned earlier, the value I gave it (`UserDefined`) is its default value, so you could actually remove that attribute and the example as given above would work exactly the same way.  
-`UserDefined` simply means that nothing is going to get dragged anywhere unless you make the call to `startDragListener.startDragging(holder);` like we set up our long click listener to do in the example above.
+<a name="long-click-drag-trigger"/>
+#### Long Click as the Drag Trigger
+In the example above I showed you how you could set up your `onBindViewHolder` method so that long clicking a view would trigger the start of a drag.  
+If your use case is actually that simple, you can take a bit of a shortcut and get the *exact same functionality*. Here are the changes you'd make:
+* In your layout, you add the `longClickTriggersDrag` attribute:  
+```xml
+<com.bkromhout.rrvl.RealmRecyclerView
+        android:id="@+id/recycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:dragAndDrop="true"
+        app:longClickTriggersDrag="true"/>
+```
+* In your adapter, you don't need to explicitly call the `startDragListener.startDragging` method, so your `onBindViewHolder` method will now look like this:  
+```java
+@Override
+public void onBindViewHolder(final ItemVH holder, int position) {
+    Item item = realmResults.get(position);
+    holder.name.setText(item.name);
+    // We set the unique ID as the tag on a view so that we will be able to get it in the onMove() method.
+    holder.content.setTag(item.uniqueId);
+}
+```
 
-The other value you can supply to `rrvlDragStartTrigger` is `LongClick`. It does exactly what it sounds like, it will (essentially) make the call to `startDragging` for you when you long click on a view. You still need to override the `onMove` method, but you wouldn't need that long click listener. I just did it the long way to show you how you'd do it if you *did* need to do more than allow a long click to start a drag any time.
+The reason why I showed it the long way was to demonstrate that the adapter can trigger a drag at any point (as long as it has a reference to the `RecyclerView.ViewHolder` which should start being dragged, that is).
 
 <a name="multi-select"/>
 ### Multi-Select
@@ -222,19 +242,19 @@ There are a few different attributes which are associated with the fast scrollin
         android:id="@+id/recycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:rrvlFastScrollEnabled="true"
-        app:rrvlAutoHideFastScrollHandle="true"
-        app:rrvlHandleAutoHideDelay="1000"
-        app:rrvlUseFastScrollBubble="true"/>
+        app:fastScroll="true"
+        app:autoHideFastScrollHandle="true"
+        app:handleAutoHideDelay="1000"
+        app:useFastScrollBubble="true"/>
 ```
 Here's what the attributes (and their associated methods on `RealmRecyclerView`) do
 
 | Attribute/Method | Method | Description |
 |:---:|:---:|:---:|
-| `rrvlFastScrollEnabled` | `setFastScrollEnabled` | Turns the fast scroller on. The default vertical scrollbar will be used if it's off.|
-| `rrvlAutoHideFastScrollHandle` | `setAutoHideFastScrollHandle` | For if you want the fast scroller's handle to auto-hide after a delay instead of staying visible. False by default. |
-| `rrvlHandleAutoHideDelay` | `setHandleAutoHideDelay` | For if you want the handle's auto-hide delay to be something other than the default 2000 milliseconds. |
-| `rrvlUseFastScrollBubble` | `setUseFastScrollBubble` | For if you want the fast scroller to display a bubble next to the handle while using it to scroll. False by default. |
+| `fastScroll` | `setFastScroll` | Turns the fast scroller on. The default vertical scrollbar will be used if it's off.|
+| `autoHideFastScrollHandle` | `setAutoHideFastScrollHandle` | For if you want the fast scroller's handle to auto-hide after a delay instead of staying visible. False by default. |
+| `handleAutoHideDelay` | `setHandleAutoHideDelay` | For if you want the handle's auto-hide delay to be something other than the default 2000 milliseconds. |
+| `useFastScrollBubble` | `setUseFastScrollBubble` | For if you want the fast scroller to display a bubble next to the handle while using it to scroll. False by default. |
 
 Other than the last one, these attributes are all you need to set if you want to have fast scrolling functionality.
 

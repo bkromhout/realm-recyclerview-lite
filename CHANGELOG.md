@@ -1,6 +1,11 @@
 # realm-recyclerview-lite Changelog
 
-## 1.7.2
+## 1.8.1
+* Fixed CHANGELOG
+* Renamed attributes, sorry for the churn!
+* Renamed `RealmRecyclerView.setFastScrollEnabled` to `RealmRecyclerView.setFastScroll`
+
+## 1.8.0
 * Refactored fast scroller implementation
     * Normal scroll positions vs. fast scroller positions should be much more aligned now
     * Now any class may implement the `BubbleTextProvider` interface's `getFastScrollBubbleText` method instead of it being constrained to a concrete `RealmBasedRecyclerViewAdapter` implementation. Said class should then be passed to the `RealmRecyclerView` using its `setBubbleTextProvider` method
