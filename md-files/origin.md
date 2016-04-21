@@ -11,3 +11,6 @@ After some thinking, I made the decision to rename the library, and I proceeded 
 * And last, but certainly not least, Thorben's incredibly genius concept of using java-diff-utils to  decide which of the `notify*Changed()` methods to call when a RealmChangeListener got fired
 
 While the code for that last item has been majorly reworked to tuned it my needs in realm-recyclerview-lite, I would be remiss to not give credit to Thorben for it; such a solution never would have occurred to me. It solves a *very* tricky problem extremely elegantly, and I'm thankful to have had such a good base to build on.
+
+[RRV]: https://github.com/thorbenprimke/realm-recyclerview
+[DnD]: https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-b9456d2b1aaf#.y5o1j11jt

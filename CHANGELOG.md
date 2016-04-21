@@ -1,5 +1,11 @@
 # realm-recyclerview-lite Changelog
 
+## 1.7.2
+* Refactored fast scroller implementation
+    * Normal scroll positions vs. fast scroller positions should be much more aligned now
+    * Now any class may implement the `BubbleTextProvider` interface's `getFastScrollBubbleText` method instead of it being constrained to a concrete `RealmBasedRecyclerViewAdapter` implementation. Said class should then be passed to the `RealmRecyclerView` using its `setBubbleTextProvider` method
+* Added an interface, `FastScrollHandleStateListener`, which can be implemented to receive notifications about when the handle becomes shown, hidden, pressed, and released.
+
 ## 1.7.1
 * Renamed `getLayoutManger()` to `getLayoutManager()` (whoops!)
 * Renamed `setAutoHideFastScrollerHandle()` to `setAutoHideFastScrollHandle()`

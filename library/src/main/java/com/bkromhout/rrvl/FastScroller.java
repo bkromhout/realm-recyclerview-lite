@@ -19,25 +19,27 @@ import android.widget.TextView;
 /**
  * Implementation of a fast scroller for our RecyclerView.
  */
-public class FastScroller extends LinearLayout {
+class FastScroller extends LinearLayout {
     private static final int BUBBLE_ANIMATION_DURATION = 100;
     private static final int HANDLE_ANIMATION_DURATION = 100;
     static final int DEFAULT_HANDLE_HIDE_DELAY = 2000;
-    private static final int TRACK_SNAP_RANGE = 5;
 
-    private TextView bubble;
     private View handle;
+    private TextView bubble;
     private RecyclerView recyclerView;
 
-    private boolean isInitialized = false;
-    private boolean useBubble = false;
-    private boolean autoHideHandle = false;
-    private int autoHideDelay = DEFAULT_HANDLE_HIDE_DELAY;
-    private int height;
     private ObjectAnimator currentBubbleShowAnimator = null;
     private ObjectAnimator currentBubbleHideAnimator = null;
     private ObjectAnimator currentHandleShowAnimator = null;
     private ObjectAnimator currentHandleHideAnimator = null;
+    private int height;
+
+    private boolean autoHideHandle = false;
+    private int autoHideDelay = DEFAULT_HANDLE_HIDE_DELAY;
+    private boolean useBubble = false;
+    private BubbleTextProvider bubbleTextProvider = null;
+    private FastScrollHandleStateListener handleStateListener = null;
+    private boolean eatVisibilityUpdates = false;
 
     /**
      * RecyclerView.OnScrollListener to make sure that we update the visibility of our views when scrolling the recycler
@@ -45,14 +47,15 @@ public class FastScroller extends LinearLayout {
      */
     private final RecyclerView.OnScrollListener onScrollListener = new RecyclerView.OnScrollListener() {
         @Override
-        public void onScrolled(final RecyclerView recyclerView, final int dx, final int dy) {
+        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
             if (handle.isSelected()) return;
 
-            final int verticalScrollOffset = recyclerView.computeVerticalScrollOffset();
-            final int verticalScrollRange = recyclerView.computeVerticalScrollRange();
-            float proportion = (float) verticalScrollOffset / ((float) verticalScrollRange - height);
+            int scrollOffset = recyclerView.computeVerticalScrollOffset();
+            int scrollRange = recyclerView.computeVerticalScrollRange();
+            int scrollExtent = recyclerView.computeVerticalScrollExtent();
+            float proportion = computeProportion(scrollOffset, scrollRange, scrollExtent);
 
-            setBubbleAndHandlePosition(height * proportion);
+            setBubbleAndHandlePosition(height * proportion, proportion);
         }
 
         @Override
@@ -64,28 +67,16 @@ public class FastScroller extends LinearLayout {
         }
     };
 
-    public interface BubbleTextGetter {
-        String getFastScrollBubbleText(int position);
+    public FastScroller(Context context) {
+        this(context, null, 0);
     }
 
-    public FastScroller(final Context context, final AttributeSet attrs, final int defStyleAttr) {
+    public FastScroller(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
+    }
+
+    public FastScroller(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(context);
-    }
-
-    public FastScroller(final Context context) {
-        super(context);
-        init(context);
-    }
-
-    public FastScroller(final Context context, final AttributeSet attrs) {
-        super(context, attrs);
-        init(context);
-    }
-
-    protected void init(Context context) {
-        if (isInitialized) return;
-        isInitialized = true;
         setOrientation(HORIZONTAL);
         setClipChildren(false);
         LayoutInflater.from(context).inflate(R.layout.fast_scroller, this, true);
@@ -109,6 +100,34 @@ public class FastScroller extends LinearLayout {
         this.autoHideHandle = autoHideHandle;
     }
 
+    void setRecyclerView(final RecyclerView recyclerView) {
+        if (this.recyclerView != recyclerView) {
+            if (this.recyclerView != null) this.recyclerView.removeOnScrollListener(onScrollListener);
+
+            this.recyclerView = recyclerView;
+            if (this.recyclerView == null) return;
+
+            recyclerView.addOnScrollListener(onScrollListener);
+        }
+
+        if (recyclerView != null)
+            recyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                @Override
+                public boolean onPreDraw() {
+                    recyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
+                    if (handle.isSelected()) return true;
+
+                    int scrollOffset = recyclerView.computeVerticalScrollOffset();
+                    int scrollRange = recyclerView.computeVerticalScrollRange();
+                    int scrollExtent = recyclerView.computeVerticalScrollExtent();
+                    float proportion = computeProportion(scrollOffset, scrollRange, scrollExtent);
+
+                    setBubbleAndHandlePosition(height * proportion, proportion);
+                    return true;
+                }
+            });
+    }
+
     /**
      * Set the delay (in ms) before the handle auto-hides. {@link #DEFAULT_HANDLE_HIDE_DELAY} is the default.
      * @param autoHideDelay Time in milliseconds to delay before auto-hiding the handle. If < 0, the default will be
@@ -128,72 +147,26 @@ public class FastScroller extends LinearLayout {
         this.useBubble = useBubble;
     }
 
+    /**
+     * Set the {@link BubbleTextProvider} to use.
+     * @param bubbleTextProvider Bubble text provider.
+     */
+    void setBubbleTextProvider(BubbleTextProvider bubbleTextProvider) {
+        this.bubbleTextProvider = bubbleTextProvider;
+    }
+
+    /**
+     * Set the {@link FastScrollHandleStateListener} to use.
+     * @param handleStateListener Handle state listener.
+     */
+    void setHandleStateListener(FastScrollHandleStateListener handleStateListener) {
+        this.handleStateListener = handleStateListener;
+    }
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         height = h;
-    }
-
-    @Override
-    public boolean onTouchEvent(@NonNull MotionEvent event) {
-        final int action = event.getAction();
-        switch (action) {
-            case MotionEvent.ACTION_DOWN:
-                // If the handle isn't visible, or it is but the touch event isn't on the handle, ignore this.
-                if (handle.getVisibility() != VISIBLE ||
-                        event.getX() < handle.getX() - ViewCompat.getPaddingStart(handle)) return false;
-                // If we're using the bubble, show it now.
-                if (useBubble && bubble.getVisibility() == INVISIBLE) showBubble();
-                // Select the handle.
-                handle.setSelected(true);
-            case MotionEvent.ACTION_MOVE:
-                // If the handle isn't visible, ignore this.
-                if (handle.getVisibility() != VISIBLE) return false;
-                // If we have auto-hide turned on, make sure the handle is shown.
-                if (autoHideHandle) showHandle();
-                // Set the positions of the bubble (unless we aren't using it), the handle, and the recyclerview.
-                final float y = event.getY();
-                setBubbleAndHandlePosition(y);
-                setRecyclerViewPosition(y);
-                return true;
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
-                // Un-select the handle.
-                handle.setSelected(false);
-                // Hide the bubble (if we're using it).
-                hideBubble();
-                // If we have auto-hide turned on, make sure we hide the handle (after a delay).
-                if (autoHideHandle) hideHandle();
-                return true;
-        }
-        return super.onTouchEvent(event);
-    }
-
-    void setRecyclerView(final RecyclerView recyclerView) {
-        if (this.recyclerView != recyclerView) {
-            if (this.recyclerView != null) this.recyclerView.removeOnScrollListener(onScrollListener);
-
-            this.recyclerView = recyclerView;
-            if (this.recyclerView == null) return;
-
-            recyclerView.addOnScrollListener(onScrollListener);
-        }
-
-        if (recyclerView != null)
-            recyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                @Override
-                public boolean onPreDraw() {
-                    recyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
-                    if (handle.isSelected()) return true;
-
-                    final int verticalScrollOffset = recyclerView.computeVerticalScrollOffset();
-                    final int verticalScrollRange = recyclerView.computeVerticalScrollRange();
-                    float proportion = (float) verticalScrollOffset / ((float) verticalScrollRange - height);
-
-                    setBubbleAndHandlePosition(height * proportion);
-                    return true;
-                }
-            });
     }
 
     @Override
@@ -205,38 +178,85 @@ public class FastScroller extends LinearLayout {
         }
     }
 
+    @Override
+    public boolean onTouchEvent(@NonNull MotionEvent event) {
+        int action = event.getAction();
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+                // If the handle isn't visible, or it is but the touch event isn't on the handle, ignore this.
+                if (handle.getVisibility() != VISIBLE ||
+                        event.getX() < handle.getX() - ViewCompat.getPaddingStart(handle)) return false;
+                // If we're using the bubble, show it now.
+                if (useBubble && bubble.getVisibility() == INVISIBLE) showBubble();
+                // Select the handle.
+                handle.setSelected(true);
+                notifyHandleListener(FastScrollerHandleState.PRESSED);
+            case MotionEvent.ACTION_MOVE:
+                // If the handle isn't visible, ignore this.
+                if (handle.getVisibility() != VISIBLE) return false;
+                // If we have auto-hide turned on, make sure the handle is shown.
+                if (autoHideHandle) showHandle();
+                // Set the positions of the bubble (unless we aren't using it), the handle, and the recyclerview.
+                float y = event.getY();
+                setRecyclerViewPosition(y);
+                setBubbleAndHandlePosition(y);
+                return true;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                // Un-select the handle.
+                handle.setSelected(false);
+                notifyHandleListener(FastScrollerHandleState.RELEASED);
+                // Hide the bubble (if we're using it).
+                hideBubble();
+                // If we have auto-hide turned on, make sure we hide the handle (after a delay).
+                if (autoHideHandle) hideHandle();
+                return true;
+        }
+        return super.onTouchEvent(event);
+    }
+
     private void setRecyclerViewPosition(float y) {
         if (recyclerView != null) {
-            final int itemCount = recyclerView.getAdapter().getItemCount();
+            int itemCount = recyclerView.getAdapter().getItemCount();
             float proportion;
 
             if (handle.getY() == 0) proportion = 0f;
-            else if (handle.getY() + handle.getHeight() >= height - TRACK_SNAP_RANGE) proportion = 1f;
-            else proportion = y / (float) height;
+            else if (handle.getY() + handle.getHeight() >= height) proportion = 1f;
+            else proportion = y / ((float) height + (float) handle.getHeight());
 
-            final int targetPos = getValueInRange(0, itemCount - 1, (int) (proportion * (float) itemCount));
+            int targetPos = (int) getValueInRange(0, itemCount - 1, proportion * (float) itemCount);
             ((LinearLayoutManager) recyclerView.getLayoutManager()).scrollToPositionWithOffset(targetPos, 0);
 
             if (useBubble) {
-                String bubbleText = ((BubbleTextGetter) recyclerView.getAdapter()).getFastScrollBubbleText(targetPos);
-                bubble.setText(bubbleText);
+                if (bubbleTextProvider == null)
+                    throw new IllegalStateException("You haven't set a BubbleTextProvider.");
+                bubble.setText(bubbleTextProvider.getFastScrollBubbleText(targetPos));
             }
         }
     }
 
-    private int getValueInRange(int min, int max, int value) {
-        int minimum = Math.max(min, value);
+    private void setBubbleAndHandlePosition(float y) {
+        setBubbleAndHandlePosition(y, 0.5f);
+    }
+
+    private void setBubbleAndHandlePosition(float y, float proportion) {
+        int handleHeight = handle.getHeight();
+
+        handle.setY(getValueInRange(0, height - handleHeight, y - handleHeight * proportion));
+        if (useBubble) {
+            int bubbleHeight = bubble.getHeight();
+            bubble.setY(getValueInRange(0, height - bubbleHeight - handleHeight / 2, y - bubbleHeight));
+        }
+    }
+
+    private float getValueInRange(float min, float max, float value) {
+        float minimum = Math.max(min, value);
         return Math.min(minimum, max);
     }
 
-    private void setBubbleAndHandlePosition(float y) {
-        final int handleHeight = handle.getHeight();
-
-        handle.setY(getValueInRange(0, height - handleHeight, (int) (y - handleHeight / 2)));
-        if (useBubble) {
-            int bubbleHeight = bubble.getHeight();
-            bubble.setY(getValueInRange(0, height - bubbleHeight - handleHeight / 2, (int) (y - bubbleHeight)));
-        }
+    private float computeProportion(int scrollOffset, int scrollRange, int scrollExtent) {
+        float maxProportion = scrollRange - scrollExtent;
+        return (float) scrollOffset / maxProportion;
     }
 
     /**
@@ -248,13 +268,19 @@ public class FastScroller extends LinearLayout {
     private void showHandle() {
         // If we're currently animating a hide, reverse and cancel that, then set the handle to visible.
         if (currentHandleHideAnimator != null) {
+            // Don't allow the listener to be notified when the reversed hide animation ends.
+            eatVisibilityUpdates = true;
             currentHandleHideAnimator.reverse();
             handle.setVisibility(VISIBLE);
+            eatVisibilityUpdates = false;
         }
 
         // At this point, if autoHideHandle is false, just make sure that the handle is visible and we're done.
         if (!autoHideHandle) {
-            handle.setVisibility(VISIBLE);
+            if (handle.getVisibility() != VISIBLE) {
+                handle.setVisibility(VISIBLE);
+                notifyHandleListener(FastScrollerHandleState.VISIBLE);
+            }
             return;
         }
 
@@ -267,12 +293,14 @@ public class FastScroller extends LinearLayout {
                 @Override
                 public void onAnimationCancel(Animator animation) {
                     super.onAnimationCancel(animation);
+                    notifyHandleListener(FastScrollerHandleState.VISIBLE);
                     currentHandleShowAnimator = null;
                 }
 
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     super.onAnimationEnd(animation);
+                    notifyHandleListener(FastScrollerHandleState.VISIBLE);
                     currentHandleShowAnimator = null;
                 }
             });
@@ -291,13 +319,19 @@ public class FastScroller extends LinearLayout {
         // If we're currently animating a show and auto-hide isn't turned on, reverse and cancel that animation, then
         // set the handle to be not visible.
         if (currentHandleShowAnimator != null && !autoHideHandle) {
+            // Don't allow the listener to be notified when the reversed show animation ends.
+            eatVisibilityUpdates = true;
             currentHandleShowAnimator.reverse();
+            eatVisibilityUpdates = false;
             handle.setVisibility(INVISIBLE);
         }
 
         // At this point, if autoHideHandle is false, just make sure that the handle isn't visible and we're done.
         if (!autoHideHandle) {
-            handle.setVisibility(INVISIBLE);
+            if (handle.getVisibility() == VISIBLE) {
+                handle.setVisibility(INVISIBLE);
+                notifyHandleListener(FastScrollerHandleState.HIDDEN);
+            }
             return;
         }
 
@@ -313,6 +347,7 @@ public class FastScroller extends LinearLayout {
                 public void onAnimationCancel(Animator animation) {
                     super.onAnimationCancel(animation);
                     handle.setVisibility(INVISIBLE);
+                    notifyHandleListener(FastScrollerHandleState.HIDDEN);
                     currentHandleHideAnimator = null;
                 }
 
@@ -320,6 +355,7 @@ public class FastScroller extends LinearLayout {
                 public void onAnimationEnd(Animator animation) {
                     super.onAnimationEnd(animation);
                     handle.setVisibility(INVISIBLE);
+                    notifyHandleListener(FastScrollerHandleState.HIDDEN);
                     currentHandleHideAnimator = null;
                 }
             });
@@ -403,5 +439,12 @@ public class FastScroller extends LinearLayout {
             });
             currentBubbleHideAnimator.start();
         }
+    }
+
+    private void notifyHandleListener(FastScrollerHandleState state) {
+        // The event will be sent if we have a listener, and if it's either not a visibility event or we aren't eating
+        // the visibility events (and thus we don't care what it is).
+        if (handleStateListener != null && (!eatVisibilityUpdates || state == FastScrollerHandleState.PRESSED ||
+                state == FastScrollerHandleState.RELEASED)) handleStateListener.onHandleStateChanged(state);
     }
 }
