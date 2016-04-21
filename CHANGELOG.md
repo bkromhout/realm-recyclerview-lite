@@ -4,6 +4,7 @@
 * Fixed CHANGELOG
 * Renamed attributes, sorry for the churn!
 * Renamed `RealmRecyclerView.setFastScrollEnabled` to `RealmRecyclerView.setFastScroll`
+* To start a drag from an adapter, you should now call `startDragging` instead of `startDragListener.startDragging`
 
 ## 1.8.0
 * Refactored fast scroller implementation

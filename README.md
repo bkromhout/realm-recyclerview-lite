@@ -136,7 +136,8 @@ public void onBindViewHolder(final ItemVH holder, int position) {
     holder.content.setOnLongClickListener(new View.OnLongClickListener() {
         @Override
         public boolean onLongClick(View v) {
-            startDragListener.startDragging(holder);
+            // Explicitly start the drag.
+            startDragging(holder);
             return true;
         }
     });
@@ -198,7 +199,7 @@ If your use case is actually that simple, you can take a bit of a shortcut and g
         app:dragAndDrop="true"
         app:longClickTriggersDrag="true"/>
 ```
-* In your adapter, you don't need to explicitly call the `startDragListener.startDragging` method, so your `onBindViewHolder` method will now look like this:  
+* In your adapter, you don't need to explicitly call the `startDragging` method, so your `onBindViewHolder` method will now look like this:  
 ```java
 @Override
 public void onBindViewHolder(final ItemVH holder, int position) {

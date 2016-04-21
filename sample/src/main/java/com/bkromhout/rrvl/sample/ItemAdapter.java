@@ -42,7 +42,8 @@ public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter
         holder.content.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                startDragListener.startDragging(holder);
+                // Explicitly start the drag.
+                startDragging(holder);
                 return true;
             }
         });

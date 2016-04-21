@@ -53,8 +53,8 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     protected List ids;
     protected HashSet<Integer> selectedPositions;
     protected int lastSelectedPos = -1;
-    protected StartDragListener startDragListener;
 
+    private StartDragListener startDragListener;
     private RealmChangeListener listener;
     private boolean animateResults;
 
@@ -213,6 +213,15 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         if (delete.getOriginal().size() != 1 || insert.getRevised().size() != 1) return false;
         // And make sure that that "line" has the same content.
         return delete.getOriginal().getLines().get(0).equals(insert.getRevised().getLines().get(0));
+    }
+
+    /**
+     * Start dragging the given {@code viewHolder}. Will do nothing if drag and drop isn't enabled.
+     * @param viewHolder ViewHolder to start dragging.
+     */
+    @SuppressWarnings("unused")
+    protected final void startDragging(RecyclerView.ViewHolder viewHolder) {
+        if (startDragListener != null) startDragListener.startDragging(viewHolder);
     }
 
     @Override
