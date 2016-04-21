@@ -53,8 +53,8 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     protected List ids;
     protected HashSet<Integer> selectedPositions;
     protected int lastSelectedPos = -1;
-    protected StartDragListener startDragListener;
 
+    private StartDragListener startDragListener;
     private RealmChangeListener listener;
     private boolean animateResults;
 
@@ -99,45 +99,6 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         }
 
         updateRealmResults(realmResults);
-    }
-
-    @Override
-    public int getItemCount() {
-        return realmResults != null ? realmResults.size() : 0;
-    }
-
-    @SuppressWarnings("unused")
-    public Object getLastItem() {
-        return realmResults.get(realmResults.size() - 1);
-    }
-
-    public final void setOnStartDragListener(StartDragListener startDragListener) {
-        this.startDragListener = startDragListener;
-    }
-
-    /**
-     * Ensure this is called whenever {@link Realm#close()} is called to ensure that the {@link #realmResults} are
-     * invalidated and the change listener removed.
-     */
-    public void close() {
-        updateRealmResults(null);
-    }
-
-    /**
-     * Update the RealmResults associated with the Adapter. Useful when the query has been changed. If the query does
-     * not change you might consider using the automaticUpdate feature.
-     * @param queryResults the new RealmResults coming from the new query.
-     */
-    public void updateRealmResults(RealmResults<T> queryResults) {
-        if (listener != null && realmResults != null) realmResults.realm.removeChangeListener(listener);
-
-        realmResults = queryResults;
-        if (realmResults != null) realmResults.realm.addChangeListener(listener);
-
-        selectedPositions.clear();
-        lastSelectedPos = -1;
-        ids = getIdsOfRealmResults();
-        notifyDataSetChanged();
     }
 
     private List getIdsOfRealmResults() {
@@ -252,6 +213,54 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         if (delete.getOriginal().size() != 1 || insert.getRevised().size() != 1) return false;
         // And make sure that that "line" has the same content.
         return delete.getOriginal().getLines().get(0).equals(insert.getRevised().getLines().get(0));
+    }
+
+    /**
+     * Start dragging the given {@code viewHolder}. Will do nothing if drag and drop isn't enabled.
+     * @param viewHolder ViewHolder to start dragging.
+     */
+    @SuppressWarnings("unused")
+    protected final void startDragging(RecyclerView.ViewHolder viewHolder) {
+        if (startDragListener != null) startDragListener.startDragging(viewHolder);
+    }
+
+    @Override
+    public int getItemCount() {
+        return realmResults != null ? realmResults.size() : 0;
+    }
+
+    @SuppressWarnings("unused")
+    public Object getLastItem() {
+        return realmResults.get(realmResults.size() - 1);
+    }
+
+    public final void setOnStartDragListener(StartDragListener startDragListener) {
+        this.startDragListener = startDragListener;
+    }
+
+    /**
+     * Ensure this is called whenever {@link Realm#close()} is called to ensure that the {@link #realmResults} are
+     * invalidated and the change listener removed.
+     */
+    public void close() {
+        updateRealmResults(null);
+    }
+
+    /**
+     * Update the RealmResults associated with the Adapter. Useful when the query has been changed. If the query does
+     * not change you might consider using the automaticUpdate feature.
+     * @param queryResults the new RealmResults coming from the new query.
+     */
+    public void updateRealmResults(RealmResults<T> queryResults) {
+        if (listener != null && realmResults != null) realmResults.realm.removeChangeListener(listener);
+
+        realmResults = queryResults;
+        if (realmResults != null) realmResults.realm.addChangeListener(listener);
+
+        selectedPositions.clear();
+        lastSelectedPos = -1;
+        ids = getIdsOfRealmResults();
+        notifyDataSetChanged();
     }
 
     /**

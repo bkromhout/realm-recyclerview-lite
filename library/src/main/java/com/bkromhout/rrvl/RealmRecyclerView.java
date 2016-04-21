@@ -13,13 +13,10 @@ import io.realm.RealmBasedRecyclerViewAdapter;
 
 /**
  * A RecyclerView that supports Realm.
+ * <p/>
+ * TODO Getters
  */
 public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyclerViewAdapter.StartDragListener {
-    // TODO this is useless, get rid of it.
-    private enum DragTrigger {
-        UserDefined, LongClick
-    }
-
     // Views.
     private RecyclerView recyclerView;
     private FastScroller fastScroller;
@@ -28,12 +25,11 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
     // Attributes.
     private int emptyViewId;
     private boolean dragAndDrop;
-    private DragTrigger dragTrigger;
     private boolean fastScrollEnabled;
 
     private RealmBasedRecyclerViewAdapter adapter;
     private ItemTouchHelper touchHelper;
-    private RealmSimpleItemTouchHelperCallback realmSimpleItemTouchHelperCallback;
+    private RealmSimpleItemTouchHelperCallback touchHelperCallback;
 
     public RealmRecyclerView(Context context) {
         super(context);
@@ -55,19 +51,17 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
 
         // Read attributes.
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.RealmRecyclerView);
-        emptyViewId = typedArray.getResourceId(R.styleable.RealmRecyclerView_rrvlEmptyLayoutId, 0);
+        emptyViewId = typedArray.getResourceId(R.styleable.RealmRecyclerView_emptyLayoutId, 0);
         // Drag and drop attributes.
-        dragAndDrop = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlDragAndDrop, false);
-        int dragStartTriggerVal = typedArray.getInt(R.styleable.RealmRecyclerView_rrvlDragStartTrigger, -1);
-        dragTrigger = dragStartTriggerVal != -1 ? DragTrigger.values()[dragStartTriggerVal] : DragTrigger.UserDefined;
+        dragAndDrop = typedArray.getBoolean(R.styleable.RealmRecyclerView_dragAndDrop, false);
+        boolean longClickTriggersDrag = typedArray.getBoolean(R.styleable.RealmRecyclerView_longClickTriggersDrag,
+                false);
         // Fast scroll attributes.
-        fastScrollEnabled = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlFastScrollEnabled, false);
-        boolean autoHideHandle = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlAutoHideFastScrollHandle,
-                false);
-        int handleAutoHideDelay = typedArray.getInt(R.styleable.RealmRecyclerView_rrvlHandleAutoHideDelay,
+        fastScrollEnabled = typedArray.getBoolean(R.styleable.RealmRecyclerView_fastScroll, false);
+        boolean autoHideHandle = typedArray.getBoolean(R.styleable.RealmRecyclerView_autoHideFastScrollHandle, false);
+        int handleAutoHideDelay = typedArray.getInt(R.styleable.RealmRecyclerView_handleAutoHideDelay,
                 FastScroller.DEFAULT_HANDLE_HIDE_DELAY);
-        boolean useFastScrollBubble = typedArray.getBoolean(R.styleable.RealmRecyclerView_rrvlUseFastScrollBubble,
-                false);
+        boolean useFastScrollBubble = typedArray.getBoolean(R.styleable.RealmRecyclerView_useFastScrollBubble, false);
         typedArray.recycle();
 
         // Get views.
@@ -104,12 +98,9 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
         recyclerView.setHasFixedSize(true);
 
         // Drag and drop.
-        if (dragAndDrop) {
-            realmSimpleItemTouchHelperCallback = new RealmSimpleItemTouchHelperCallback(
-                    dragTrigger == DragTrigger.LongClick);
-            touchHelper = new ItemTouchHelper(realmSimpleItemTouchHelperCallback);
-            touchHelper.attachToRecyclerView(recyclerView);
-        }
+        touchHelperCallback = new RealmSimpleItemTouchHelperCallback(dragAndDrop, longClickTriggersDrag);
+        touchHelper = new ItemTouchHelper(touchHelperCallback);
+        touchHelper.attachToRecyclerView(recyclerView);
 
         // Fast scroll.
         fastScroller.setRecyclerView(recyclerView);
@@ -128,7 +119,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
 
     @Override
     public final void startDragging(RecyclerView.ViewHolder viewHolder) {
-        if (touchHelper != null) touchHelper.startDrag(viewHolder);
+        if (dragAndDrop && touchHelper != null) touchHelper.startDrag(viewHolder);
     }
 
     /**
@@ -139,49 +130,89 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
         this.adapter = adapter;
         recyclerView.setAdapter(adapter);
 
-        if (dragAndDrop) realmSimpleItemTouchHelperCallback.setListener(adapter);
-        if (dragAndDrop && dragTrigger == DragTrigger.UserDefined) adapter.setOnStartDragListener(this);
+        // Support for drag and drop.
+        touchHelperCallback.setListener(adapter);
+        adapter.setOnStartDragListener(this);
 
-        if (adapter != null) {
-            adapter.registerAdapterDataObserver(
-                    new RecyclerView.AdapterDataObserver() {
-                        @Override
-                        public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
-                            super.onItemRangeMoved(fromPosition, toPosition, itemCount);
-                            update();
-                        }
-
-                        @Override
-                        public void onItemRangeRemoved(int positionStart, int itemCount) {
-                            super.onItemRangeRemoved(positionStart, itemCount);
-                            update();
-                        }
-
-                        @Override
-                        public void onItemRangeInserted(int positionStart, int itemCount) {
-                            super.onItemRangeInserted(positionStart, itemCount);
-                            update();
-                        }
-
-                        @Override
-                        public void onItemRangeChanged(int positionStart, int itemCount) {
-                            super.onItemRangeChanged(positionStart, itemCount);
-                            update();
-                        }
-
-                        @Override
-                        public void onChanged() {
-                            super.onChanged();
-                            update();
-                        }
-
-                        private void update() {
-                            updateEmptyContentContainerVisibility(adapter);
-                        }
+        adapter.registerAdapterDataObserver(
+                new RecyclerView.AdapterDataObserver() {
+                    @Override
+                    public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
+                        super.onItemRangeMoved(fromPosition, toPosition, itemCount);
+                        update();
                     }
-            );
-            updateEmptyContentContainerVisibility(adapter);
-        }
+
+                    @Override
+                    public void onItemRangeRemoved(int positionStart, int itemCount) {
+                        super.onItemRangeRemoved(positionStart, itemCount);
+                        update();
+                    }
+
+                    @Override
+                    public void onItemRangeInserted(int positionStart, int itemCount) {
+                        super.onItemRangeInserted(positionStart, itemCount);
+                        update();
+                    }
+
+                    @Override
+                    public void onItemRangeChanged(int positionStart, int itemCount) {
+                        super.onItemRangeChanged(positionStart, itemCount);
+                        update();
+                    }
+
+                    @Override
+                    public void onChanged() {
+                        super.onChanged();
+                        update();
+                    }
+
+                    private void update() {
+                        updateEmptyContentContainerVisibility(adapter);
+                    }
+                }
+        );
+        updateEmptyContentContainerVisibility(adapter);
+    }
+
+    /**
+     * Get whether drag and drop is enabled.
+     * @return Whether drag and drop is enabled or not.
+     */
+    public final boolean getDragAndDrop() {
+        return dragAndDrop;
+    }
+
+    /**
+     * Enable/Disable drag and drop.
+     * @param enabled Whether to allow drag and drop.
+     */
+    public final void setDragAndDrop(boolean enabled) {
+        this.dragAndDrop = enabled;
+        touchHelperCallback.setDragAndDrop(enabled);
+    }
+
+    /**
+     * Get whether long click triggers drags.
+     * @return Whether long click triggers drags or not.
+     */
+    public final boolean getLongClickTriggersDrag() {
+        return touchHelperCallback.getLongClickTriggersDrag();
+    }
+
+    /**
+     * Whether to use long click to trigger the drag or not.
+     * @param longClickTriggersDrag Whether to allow long clicks to start drags.
+     */
+    public final void setLongClickTriggersDrag(boolean longClickTriggersDrag) {
+        touchHelperCallback.setLongClickTriggersDrag(longClickTriggersDrag);
+    }
+
+    /**
+     * Get whether fast scrolling is enabled.
+     * @return Whether fast scrolling is enabled or not.
+     */
+    public final boolean getFastScroll() {
+        return fastScrollEnabled;
     }
 
     /**
@@ -190,10 +221,18 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
      * @param enabled Whether to enable the fast scroller or not.
      */
     @SuppressWarnings("unused")
-    public final void setFastScrollEnabled(boolean enabled) {
+    public final void setFastScroll(boolean enabled) {
         this.fastScrollEnabled = enabled;
         recyclerView.setVerticalScrollBarEnabled(!enabled);
         fastScroller.setVisibility(enabled ? VISIBLE : GONE);
+    }
+
+    /**
+     * Get whether the fast scroller's handle is set to auto-hide.
+     * @return Whether the fast scroller's handle is set to auto-hide or not.
+     */
+    public final boolean getAutoHideFastScrollHandle() {
+        return fastScroller.getAutoHideHandle();
     }
 
     /**
@@ -206,6 +245,14 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
     }
 
     /**
+     * Get the delay (in milliseconds) before which the fast scroller handle with auto-hide.
+     * @return Auto-hide delay.
+     */
+    public final int getHandleAutoHideDelay() {
+        return fastScroller.getAutoHideDelay();
+    }
+
+    /**
      * Set the delay (in milliseconds) before which the fast scroller handle will auto-hide. Default is {@link
      * FastScroller#DEFAULT_HANDLE_HIDE_DELAY}.
      * @param autoHideDelay Auto-hide delay. If < 0, will use the default.
@@ -213,6 +260,14 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
     @SuppressWarnings("unused")
     public final void setHandleAutoHideDelay(int autoHideDelay) {
         fastScroller.setAutoHideDelay(autoHideDelay);
+    }
+
+    /**
+     * Get whether the fast scroller's bubble is being used.
+     * @return Whether the fast scroller's bubble is being used or not.
+     */
+    public final boolean getUseFastScrollBubble() {
+        return fastScroller.getUseBubble();
     }
 
     /**

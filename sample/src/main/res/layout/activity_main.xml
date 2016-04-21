@@ -11,11 +11,11 @@
             android:id="@+id/recycler"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:rrvlDragAndDrop="true"
-            app:rrvlFastScrollEnabled="true"
-            app:rrvlAutoHideFastScrollHandle="true"
-            app:rrvlHandleAutoHideDelay="1000"
-            app:rrvlUseFastScrollBubble="true"
+            app:dragAndDrop="true"
+            app:fastScroll="true"
+            app:autoHideFastScrollHandle="true"
+            app:handleAutoHideDelay="1000"
+            app:useFastScrollBubble="true"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
     <android.support.design.widget.FloatingActionButton
@@ -23,7 +23,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
-            android:src="@drawable/ic_star"
+            android:src="@drawable/ic_settings"
             android:tint="@android:color/white"
             android:clickable="true"
             app:layout_anchor="@id/recycler"

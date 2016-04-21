@@ -6,9 +6,9 @@
 	<string name="library_rrvl_authorWebsite">https://github.com/bkromhout</string>
 	<!-- Library section -->
 	<string name="library_rrvl_libraryName">realm-recyclerview-lite</string>
-	<string name="library_rrvl_libraryDescription">Yet another Realm RecyclerView. Supports drag-and-drop, fast scrolling, and multi-select.</string>
+	<string name="library_rrvl_libraryDescription">A RecyclerView for Realm data which supports drag-and-drop, fast scrolling, and multi-select</string>
 	<string name="library_rrvl_libraryWebsite">https://github.com/bkromhout/realm-recyclerview-lite</string>
-	<string name="library_rrvl_libraryVersion">1.8.0</string>
+	<string name="library_rrvl_libraryVersion">1.9.0</string>
 	<!-- OpenSource section -->
 	<string name="library_rrvl_isOpenSource">true</string>
 	<string name="library_rrvl_repositoryLink">https://github.com/bkromhout/realm-recyclerview-lite</string>
