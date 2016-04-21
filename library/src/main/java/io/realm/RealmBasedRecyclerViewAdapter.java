@@ -33,7 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * The base {@link RecyclerView.Adapter} that includes custom functionality to be used with {@link RealmRecyclerView}.
+ * The base {@code RecyclerView.Adapter} that includes custom functionality to be used with {@link RealmRecyclerView}.
  */
 public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH extends RecyclerView.ViewHolder> extends
         RecyclerView.Adapter<VH> implements RealmSimpleItemTouchHelperCallback.Listener {
