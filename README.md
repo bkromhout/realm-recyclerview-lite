@@ -58,7 +58,7 @@ Adding a `RealmRecyclerView` to your layout is simple:
 </RelativeLayout>
 ```
 
-The other important thing is to make sure that your adapter extends `RealmBasedRecyclerViewAdapter`. In keeping with the provided sample application, here is (a very slimmed down) version of an adapter:
+The other important thing is to make sure that your adapter extends `RealmBasedRecyclerViewAdapter`. In keeping with the provided sample application, here is a (very slimmed down) version of an adapter:
 ```java
 public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter.ItemVH> {
 
@@ -111,11 +111,12 @@ A couple more points of note:
 
 <a name="drag-and-drop"/>
 ### Drag and Drop
-Drag and drop can be a tricky feature to implement in the first place since your data model usually must have some field which keeps track of a position. Combine this with Realm's auto-updating nature, and you can quickly get lost in a sea of woe. Luckily, I've done most of the work for you 😉.
+Drag and drop can be a tricky feature to implement in the first place since your data model usually must have some field which keeps track of a position. Combine this with Realm's auto-updating nature, and you can quickly get lost in a sea of troubles. Luckily, I've done most of the work for you 😉.
 
-There are a few things which must be done to get drag and drop working properly. Keep in mind as you read through these steps that my preferred design choices may not line up exactly with yours; I've tried to keep this in mind to allow you maximum flexibility.
+Keep in mind as you read through these steps that my preferred implementation choices may not line up exactly with yours; I've tried to keep this in mind to allow you maximum flexibility.
 
-First, you need to enable drag and drop functionality. Currently the only way to do this is by adding the `dragAndDrop` attribute to your `RealmRecyclerView` in your layout and have it set to `true`:
+First, we need to enable drag and drop functionality. This can be done in two ways:
+* In our layout, with the `dragAndDrop` attribute:  
 ```xml
 <com.bkromhout.rrvl.RealmRecyclerView
         android:id="@+id/recycler"
@@ -123,8 +124,12 @@ First, you need to enable drag and drop functionality. Currently the only way to
         android:layout_height="match_parent"
         app:dragAndDrop="true"/>
 ```
+* Or programmatically, with the `RealmRecyclerView.setDragAndDrop` method:  
+```java
+recyclerView.setDragAndDrop(true);
+```
 
-Now we move back to your adapter. For drag and drop to work, you need to override the `onMove` method. You also need to add a bit more to your overridden `onBindViewHolder` method than it had before. These are the full methods from the sample app's [`ItemAdapter` class][ItemAdapter Class]:
+Next, some work needs to be done in our adapter. For drag and drop to work, we need to override the `onMove` method. We also need to add a bit more to our overridden `onBindViewHolder` method than it had before. These are the full methods from the sample app's [`ItemAdapter` class][ItemAdapter Class]:
 ```java
 @Override
 public void onBindViewHolder(final ItemVH holder, int position) {
@@ -167,7 +172,7 @@ public boolean onMove(RecyclerView.ViewHolder dragging, RecyclerView.ViewHolder 
     return true;
 }
 ```
-Please note how I've ensured that the `onMove` method will have access to the value in each `Item`'s `uniqueId` field by storing that value as the tag of `content` View from the view holder.
+Please note how we've ensured that the `onMove` method will have access to the value in each `Item`'s `uniqueId` field by storing that value as the tag of `content` View from the view holder.
 
 I have to insist at this point that you look at some of the sample application's classes, I can't just dump the whole thing into this README file (But I will give you links).  
 First, if you haven't done so already, take a quick look at [`Item` model class][Item Class].  
@@ -189,8 +194,10 @@ You should also notice that nowhere in this code, be it the `onMove` method abov
 <a name="long-click-drag-trigger"/>
 #### Long Click as the Drag Trigger
 In the example above I showed you how you could set up your `onBindViewHolder` method so that long clicking a view would trigger the start of a drag.  
-If your use case is actually that simple, you can take a bit of a shortcut and get the *exact same functionality*. Here are the changes you'd make:
-* In your layout, you add the `longClickTriggersDrag` attribute:  
+If your use case is actually that simple, you can take a bit of a shortcut and get the *exact same functionality*.
+
+We can either:
+* Add the `longClickTriggersDrag` attribute to our layout:  
 ```xml
 <com.bkromhout.rrvl.RealmRecyclerView
         android:id="@+id/recycler"
@@ -199,7 +206,12 @@ If your use case is actually that simple, you can take a bit of a shortcut and g
         app:dragAndDrop="true"
         app:longClickTriggersDrag="true"/>
 ```
-* In your adapter, you don't need to explicitly call the `startDragging` method, so your `onBindViewHolder` method will now look like this:  
+* Or call the `setLongClickTriggersDrag` method on our `RealmRecyclerView`:  
+```java
+recyclerView.setLongClickTriggersDrag(true);
+```
+
+Then we won't need to explicitly call the `startDragging` method in the adapter, so our `onBindViewHolder` method will now look like this:  
 ```java
 @Override
 public void onBindViewHolder(final ItemVH holder, int position) {
@@ -210,7 +222,7 @@ public void onBindViewHolder(final ItemVH holder, int position) {
 }
 ```
 
-The reason why I showed it the long way was to demonstrate that the adapter can trigger a drag at any point (as long as it has a reference to the `RecyclerView.ViewHolder` which should start being dragged, that is).
+The reason why I showed it the long way initially was to demonstrate that the adapter can trigger a drag at any point in time (as long as it has a reference to the `RecyclerView.ViewHolder` which should start being dragged, that is).
 
 <a name="multi-select"/>
 ### Multi-Select
@@ -261,7 +273,7 @@ Other than the last one, these attributes are all you need to set if you want to
 
 To have the fast scroller show a bubble (akin to the stock Android Contacts app), you need to both set that last one to `true` as well as have some class implement the [`BubbleTextProvider` interface][BubbleTextProvider Class], which defines one method, `getFastScrollBubbleText`. That method provides the position of the item in the adapter and expects the text which should be shown in the bubble in return.
 
-In the sample application, I've chosen to have my [`ItemAdapter` class][ItemAdapter Class] implement this method like so:
+Our sample application's [`ItemAdapter` class][ItemAdapter Class] implements this method like so:
 ```java
 @Override
 public String getFastScrollBubbleText(int position) {
@@ -269,7 +281,7 @@ public String getFastScrollBubbleText(int position) {
 }
 ```
 
-And then in the sample app's [`MainActivity` class][MainActivity Class], I pass the adapter to the `RealmRecyclerView` both as the adapter (of course) and as the bubble text provider at the end of    `onCreate`, like this:
+And then in the [`MainActivity` class][MainActivity Class], we pass the adapter to the `RealmRecyclerView` both as the adapter (of course) and as the bubble text provider at the end of    `onCreate`, like this:
 ```java
 recyclerView.setAdapter(adapter);
 recyclerView.setBubbleTextProvider((ItemAdapter) adapter);
@@ -283,7 +295,7 @@ Having a fast scroller is great, but sadly Android's built-in classes, like `Coo
 
 A good example of this is when you have a `FloatingActionButton` on the screen with your `RealmRecyclerView`. While you *can* create a "behavior" which will cause the `FloatingActionButton` to automatically show/hide itself as you scroll the `RealmRecyclerView` up/down, that behavior class won't pick up on the scrolling done with the fast scroller, only normal scrolling 😞.
 
-For my use case, I wanted the `FloatingActionButton` to hide itself when I grabbed the fast scroll handle, so I created the [`FastScrollHandleStateListener` interface][FastScrollHandleStateListener Class]. Here's how the sample's [`MainActivity`][MainActivity Class] implements it:
+For my use case, I wanted the `FloatingActionButton` to hide itself when I grabbed the fast scroll handle, so I created the [`FastScrollHandleStateListener` interface][FastScrollHandleStateListener Class]. Here's how the [`MainActivity` class][MainActivity Class] implements it:
 ```java
 @Override
 public void onHandleStateChanged(FastScrollerHandleState newState) {

@@ -23,12 +23,11 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
     // Attributes.
     private int emptyViewId;
     private boolean dragAndDrop;
-    private boolean longClickTriggersDrag;
     private boolean fastScrollEnabled;
 
     private RealmBasedRecyclerViewAdapter adapter;
     private ItemTouchHelper touchHelper;
-    private RealmSimpleItemTouchHelperCallback realmSimpleItemTouchHelperCallback;
+    private RealmSimpleItemTouchHelperCallback touchHelperCallback;
 
     public RealmRecyclerView(Context context) {
         super(context);
@@ -53,7 +52,8 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
         emptyViewId = typedArray.getResourceId(R.styleable.RealmRecyclerView_emptyLayoutId, 0);
         // Drag and drop attributes.
         dragAndDrop = typedArray.getBoolean(R.styleable.RealmRecyclerView_dragAndDrop, false);
-        longClickTriggersDrag = typedArray.getBoolean(R.styleable.RealmRecyclerView_longClickTriggersDrag, false);
+        boolean longClickTriggersDrag = typedArray.getBoolean(R.styleable.RealmRecyclerView_longClickTriggersDrag,
+                false);
         // Fast scroll attributes.
         fastScrollEnabled = typedArray.getBoolean(R.styleable.RealmRecyclerView_fastScroll, false);
         boolean autoHideHandle = typedArray.getBoolean(R.styleable.RealmRecyclerView_autoHideFastScrollHandle, false);
@@ -96,11 +96,9 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
         recyclerView.setHasFixedSize(true);
 
         // Drag and drop.
-        if (dragAndDrop) {
-            realmSimpleItemTouchHelperCallback = new RealmSimpleItemTouchHelperCallback(longClickTriggersDrag);
-            touchHelper = new ItemTouchHelper(realmSimpleItemTouchHelperCallback);
-            touchHelper.attachToRecyclerView(recyclerView);
-        }
+        touchHelperCallback = new RealmSimpleItemTouchHelperCallback(dragAndDrop, longClickTriggersDrag);
+        touchHelper = new ItemTouchHelper(touchHelperCallback);
+        touchHelper.attachToRecyclerView(recyclerView);
 
         // Fast scroll.
         fastScroller.setRecyclerView(recyclerView);
@@ -119,7 +117,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
 
     @Override
     public final void startDragging(RecyclerView.ViewHolder viewHolder) {
-        if (touchHelper != null) touchHelper.startDrag(viewHolder);
+        if (dragAndDrop && touchHelper != null) touchHelper.startDrag(viewHolder);
     }
 
     /**
@@ -130,49 +128,65 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
         this.adapter = adapter;
         recyclerView.setAdapter(adapter);
 
-        if (dragAndDrop) realmSimpleItemTouchHelperCallback.setListener(adapter);
-        if (dragAndDrop && !longClickTriggersDrag) adapter.setOnStartDragListener(this);
+        // Support for drag and drop.
+        touchHelperCallback.setListener(adapter);
+        adapter.setOnStartDragListener(this);
 
-        if (adapter != null) {
-            adapter.registerAdapterDataObserver(
-                    new RecyclerView.AdapterDataObserver() {
-                        @Override
-                        public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
-                            super.onItemRangeMoved(fromPosition, toPosition, itemCount);
-                            update();
-                        }
-
-                        @Override
-                        public void onItemRangeRemoved(int positionStart, int itemCount) {
-                            super.onItemRangeRemoved(positionStart, itemCount);
-                            update();
-                        }
-
-                        @Override
-                        public void onItemRangeInserted(int positionStart, int itemCount) {
-                            super.onItemRangeInserted(positionStart, itemCount);
-                            update();
-                        }
-
-                        @Override
-                        public void onItemRangeChanged(int positionStart, int itemCount) {
-                            super.onItemRangeChanged(positionStart, itemCount);
-                            update();
-                        }
-
-                        @Override
-                        public void onChanged() {
-                            super.onChanged();
-                            update();
-                        }
-
-                        private void update() {
-                            updateEmptyContentContainerVisibility(adapter);
-                        }
+        adapter.registerAdapterDataObserver(
+                new RecyclerView.AdapterDataObserver() {
+                    @Override
+                    public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
+                        super.onItemRangeMoved(fromPosition, toPosition, itemCount);
+                        update();
                     }
-            );
-            updateEmptyContentContainerVisibility(adapter);
-        }
+
+                    @Override
+                    public void onItemRangeRemoved(int positionStart, int itemCount) {
+                        super.onItemRangeRemoved(positionStart, itemCount);
+                        update();
+                    }
+
+                    @Override
+                    public void onItemRangeInserted(int positionStart, int itemCount) {
+                        super.onItemRangeInserted(positionStart, itemCount);
+                        update();
+                    }
+
+                    @Override
+                    public void onItemRangeChanged(int positionStart, int itemCount) {
+                        super.onItemRangeChanged(positionStart, itemCount);
+                        update();
+                    }
+
+                    @Override
+                    public void onChanged() {
+                        super.onChanged();
+                        update();
+                    }
+
+                    private void update() {
+                        updateEmptyContentContainerVisibility(adapter);
+                    }
+                }
+        );
+        updateEmptyContentContainerVisibility(adapter);
+    }
+
+    /**
+     * Enable/Disable drag and drop.
+     * @param enabled Whether to allow drag and drop.
+     */
+    public final void setDragAndDrop(boolean enabled) {
+        this.dragAndDrop = enabled;
+        touchHelperCallback.setDragAndDrop(enabled);
+    }
+
+    /**
+     * Whether to use long click to trigger the drag or not.
+     * @param longClickTriggersDrag Whether to allow long clicks to start drags.
+     */
+    public final void setLongClickTriggersDrag(boolean longClickTriggersDrag) {
+        touchHelperCallback.setLongClickTriggersDrag(longClickTriggersDrag);
     }
 
     /**

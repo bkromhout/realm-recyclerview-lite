@@ -1,10 +1,11 @@
 # realm-recyclerview-lite Changelog
 
-## 1.8.1
+## 1.9.0
 * Fixed CHANGELOG
 * Renamed attributes, sorry for the churn!
 * Renamed `RealmRecyclerView.setFastScrollEnabled` to `RealmRecyclerView.setFastScroll`
 * To start a drag from an adapter, you should now call `startDragging` instead of `startDragListener.startDragging`
+* `RealmRecyclerView`'s drag and drop functionality can now be set programmatically using the `setDragAndDrop` and `setLongClickTriggersDrag` methods.
 
 ## 1.8.0
 * Refactored fast scroller implementation
