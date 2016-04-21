@@ -24,7 +24,7 @@ ext {
     BINTRAY_USER = 'bkromhout'
     GROUP_NAME = 'com.bkromhout'
     ARTIFACT_NAME = 'realm-recyclerview-lite'
-    DESCRIPTION = 'Yet another Realm RecyclerView. Supports drag-and-drop as well as a few other features.'
+    DESCRIPTION = 'A RecyclerView for Realm data which supports drag-and-drop, fast scrolling, and multi-select'
     COMPILE_SDK = 23
     BUILD_TOOLS = '23.0.2'
     IS_UPLOADING = project.getGradle().startParameter.taskNames.any{it.contains('bintrayUpload')}
