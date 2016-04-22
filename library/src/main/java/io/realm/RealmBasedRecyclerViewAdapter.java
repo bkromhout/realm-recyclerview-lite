@@ -26,14 +26,16 @@ import com.bkromhout.rrvl.RealmSimpleItemTouchHelperCallback;
 import difflib.Delta;
 import difflib.DiffUtils;
 import difflib.Patch;
-import io.realm.internal.TableOrView;
+import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Row;
+import io.realm.internal.Table;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
 /**
- * The base {@link RecyclerView.Adapter} that includes custom functionality to be used with {@link RealmRecyclerView}.
+ * The base {@code RecyclerView.Adapter} that includes custom functionality to be used with {@link RealmRecyclerView}.
  */
 public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH extends RecyclerView.ViewHolder> extends
         RecyclerView.Adapter<VH> implements RealmSimpleItemTouchHelperCallback.Listener {
@@ -48,62 +50,73 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
 
     private static final List<Long> EMPTY_LIST = new ArrayList<>(0);
 
+    private StartDragListener startDragListener;
+    private RealmChangeListener changeListener;
+
+    private boolean animateResults;
+    private boolean gotAnimationInfo = false;
+    private long animatePrimaryKeyIndex;
+    private RealmFieldType animatePrimaryKeyType;
+    private String animateExtraField;
+    private long animateExtraFieldIndex = -1;
+    private RealmFieldType animateExtraFieldType;
+
     protected LayoutInflater inflater;
     protected RealmResults<T> realmResults;
     protected List ids;
     protected HashSet<Integer> selectedPositions;
     protected int lastSelectedPos = -1;
 
-    private StartDragListener startDragListener;
-    private RealmChangeListener listener;
-    private boolean animateResults;
-
-    private long animatePrimaryColumnIndex;
-    private RealmFieldType animatePrimaryIdType;
-    private long animateExtraColumnIndex;
-    private RealmFieldType animateExtraIdType;
-
-    public RealmBasedRecyclerViewAdapter(Context context, RealmResults<T> realmResults, boolean automaticUpdate,
-                                         boolean animateResults, String animateExtraColumnName) {
+    public RealmBasedRecyclerViewAdapter(Context context, RealmResults<T> realmResults,
+                                         boolean automaticUpdate, boolean animateResults, String animateExtraField) {
         if (context == null) throw new IllegalArgumentException("Context cannot be null");
-
+        this.changeListener = (!automaticUpdate) ? null : getRealmChangeListener();
         this.animateResults = animateResults;
+        this.animateExtraField = animateExtraField;
         this.inflater = LayoutInflater.from(context);
-        this.listener = (!automaticUpdate) ? null : getRealmChangeListener();
 
         selectedPositions = new HashSet<>();
 
         // If automatic updates aren't enabled, then animateResults should be false as well.
         this.animateResults = (automaticUpdate && animateResults);
-        if (animateResults) {
-            animatePrimaryColumnIndex = realmResults.getTable().getTable().getPrimaryKey();
-            if (animatePrimaryColumnIndex == TableOrView.NO_MATCH) throw new IllegalStateException(
-                    "Animating the results requires a primaryKey.");
-
-            animatePrimaryIdType = realmResults.getTable().getColumnType(animatePrimaryColumnIndex);
-            if (animatePrimaryIdType != RealmFieldType.INTEGER && animatePrimaryIdType != RealmFieldType.STRING)
-                throw new IllegalStateException("Animating requires a primary key of type Integer/Long or String");
-
-            if (animateExtraColumnName != null) {
-                animateExtraColumnIndex = realmResults.getTable().getTable().getColumnIndex(animateExtraColumnName);
-                if (animateExtraColumnIndex == TableOrView.NO_MATCH) throw new IllegalStateException(
-                        "Animating the results requires a valid animateColumnName.");
-
-                animateExtraIdType = realmResults.getTable().getColumnType(animateExtraColumnIndex);
-                if (animateExtraIdType != RealmFieldType.INTEGER && animateExtraIdType != RealmFieldType.STRING)
-                    throw new IllegalStateException(
-                            "Animating requires a animateColumnName of type Int/Long or String");
-            } else {
-                animateExtraColumnIndex = -1;
-            }
-        }
 
         updateRealmResults(realmResults);
+    }
+
+    private void updateAnimationInfo() {
+        if (!animateResults || realmResults == null || gotAnimationInfo) return;
+        Table modelTable = realmResults.getTable().getTable();
+
+        // Ensure we have a primary key.
+        if (!modelTable.hasPrimaryKey())
+            throw new IllegalStateException("Animating the results requires a primary key.");
+        // Get the primary key's column index and type.
+        animatePrimaryKeyIndex = modelTable.getPrimaryKey();
+        animatePrimaryKeyType = modelTable.getColumnType(animatePrimaryKeyIndex);
+
+        // If not null, ensure that the extra field is valid.
+        if (animateExtraField != null) {
+            // Get extra field's column index.
+            animateExtraFieldIndex = modelTable.getColumnIndex(animateExtraField);
+            // If we couldn't find it, it doesn't exist.
+            if (animateExtraFieldIndex == Table.NO_MATCH)
+                throw new IllegalArgumentException("animateExtraField must be a valid field name");
+
+            // Try to get extra field's type.
+            animateExtraFieldType = modelTable.getColumnType(animateExtraFieldIndex);
+            // Make sure it's a short/int/long or string.
+            if (animateExtraFieldType != RealmFieldType.INTEGER && animateExtraFieldType != RealmFieldType.STRING)
+                throw new IllegalArgumentException("animateExtraField must be short, int, long, or string type.");
+        }
+
+        gotAnimationInfo = true;
     }
 
     private List getIdsOfRealmResults() {
         if (!animateResults || realmResults == null || realmResults.size() == 0) return EMPTY_LIST;
 
+        //realmResults.syncIfNeeded();
+        // Get/Update IDs.
         List ids = new ArrayList(realmResults.size());
         for (int i = 0; i < realmResults.size(); i++) //noinspection unchecked
             ids.add(getRealmRowId(i));
@@ -112,29 +125,26 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     }
 
     private Object getRealmRowId(int realmIndex) {
-        Object rowPrimaryId;
-        if (animatePrimaryIdType == RealmFieldType.INTEGER) {
-            rowPrimaryId = realmResults.get(realmIndex).row.getLong(animatePrimaryColumnIndex);
-        } else if (animatePrimaryIdType == RealmFieldType.STRING) {
-            rowPrimaryId = realmResults.get(realmIndex).row.getString(animatePrimaryColumnIndex);
-        } else {
-            throw new IllegalStateException("Unknown animatedIdType");
+        Row row = ((RealmObjectProxy) realmResults.get(realmIndex)).realmGet$proxyState().getRow$realm();
+        Object rowId;
+
+        if (animatePrimaryKeyType == RealmFieldType.INTEGER)
+            rowId = row.getLong(animatePrimaryKeyIndex);
+        else if (animatePrimaryKeyType == RealmFieldType.STRING)
+            rowId = row.getString(animatePrimaryKeyIndex);
+        else throw new IllegalStateException("Unknown animatedIdType");
+
+        if (animateExtraFieldIndex != -1) {
+            String rowIdStr = rowId instanceof String ? (String) rowId : String.valueOf(rowId);
+
+            if (animateExtraFieldType == RealmFieldType.INTEGER)
+                return rowIdStr + String.valueOf(row.getLong(animateExtraFieldIndex));
+            else if (animateExtraFieldType == RealmFieldType.STRING)
+                return rowIdStr + row.getString(animateExtraFieldIndex);
+            else throw new IllegalStateException("Unknown animateExtraFieldType");
         }
 
-        if (animateExtraColumnIndex != -1) {
-            String rowPrimaryIdStr = (rowPrimaryId instanceof String) ? (String) rowPrimaryId : String.valueOf(
-                    rowPrimaryId);
-            if (animateExtraIdType == RealmFieldType.INTEGER) {
-                return rowPrimaryIdStr + String.valueOf(
-                        realmResults.get(realmIndex).row.getLong(animateExtraColumnIndex));
-            } else if (animateExtraIdType == RealmFieldType.STRING) {
-                return rowPrimaryIdStr + realmResults.get(realmIndex).row.getString(animateExtraColumnIndex);
-            } else {
-                throw new IllegalStateException("Unknown animateExtraIdType");
-            }
-        } else {
-            return rowPrimaryId;
-        }
+        return rowId;
     }
 
     private RealmChangeListener getRealmChangeListener() {
@@ -252,13 +262,14 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * @param queryResults the new RealmResults coming from the new query.
      */
     public void updateRealmResults(RealmResults<T> queryResults) {
-        if (listener != null && realmResults != null) realmResults.realm.removeChangeListener(listener);
+        if (changeListener != null && realmResults != null) realmResults.realm.removeChangeListener(changeListener);
 
         realmResults = queryResults;
-        if (realmResults != null) realmResults.realm.addChangeListener(listener);
+        if (realmResults != null) realmResults.realm.addChangeListener(changeListener);
 
         selectedPositions.clear();
         lastSelectedPos = -1;
+        updateAnimationInfo();
         ids = getIdsOfRealmResults();
         notifyDataSetChanged();
     }
@@ -413,19 +424,11 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
 
     /**
      * Called when an item has been moved whilst dragging. There are two things that overriding classes must
-     * consider:<br/>-This is called EVERY time an item "moves", not just when it is "dropped".<br/>-An item technically
-     * "moves" each time it is dragged over another item (as in, when the two items should appear to swap); however, if
-     * a drag happens very fast this tends to not get called until the dragged item has already moved past more than one
-     * target item.
-     * <p/>
-     * Put together, this means that the following three cases should be considered for best performance:<br/>1: The
-     * dragged item moves past one item (the items swap) -> Swap the values of whatever field is used to maintain
-     * order.<br/>2: The dragged item has moved up past several items -> Recalculate the order field's value for the
-     * dragging item.<br/>3: The dragged item has moved down past several items -> Recalculate the order field's value
-     * for the dragging item.
-     * <p/>
-     * If these three cases are handled well (specifically, the latter two do not cause the whole list's order field
-     * values to be recalculated), then dragging items should be nearly (if not completely) lag free.
+     * consider:<br/>-This is called EVERY time an item "moves", not just when it is "dropped".<br/>-An item
+     * <i>technically</i> "moves" each time it is dragged over another item (as in, when the two items should appear to
+     * swap); however, if the item is being dragged fast enough Android tends to batch together what would otherwise be
+     * multiple calls to this method (if the drag occurred slower) into a single call, meaning that item may have moved
+     * multiple spaces.
      * @param dragging The ViewHolder item being dragged.
      * @param target   The ViewHolder item under the item being dragged.
      */

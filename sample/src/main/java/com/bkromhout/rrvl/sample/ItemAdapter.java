@@ -39,7 +39,8 @@ public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter
     public void onBindViewHolder(final ItemVH holder, int position) {
         Item item = realmResults.get(position);
         holder.name.setText(item.name);
-        // We set the unique ID as the tag on a view so that we will be able to get it in the onMove() method.
+        // We set the unique ID as the tag on a view so that we will be able to get it
+        // in the onMove() method.
         holder.content.setTag(item.uniqueId);
         // Grabbing the drag handle should trigger a drag.
         holder.dragHandle.setOnTouchListener(new View.OnTouchListener() {
@@ -62,16 +63,10 @@ public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter
         long draggingId = (long) ((ItemVH) dragging).content.getTag();
         long targetId = (long) ((ItemVH) target).content.getTag();
 
-        // Determine if we can swap the items or if we need to actually move the item being dragged.
-        if (Math.abs(draggingPos - targetPos) == 1)
-            // Swapped.
-            ItemDragHelper.swapItemPositions(draggingId, targetId);
-        else if (draggingPos > targetPos)
-            // Moved up multiple.
-            ItemDragHelper.moveItemToBefore(draggingId, targetId);
-        else
-            // Moved down multiple.
-            ItemDragHelper.moveItemToAfter(draggingId, targetId);
+        // Move the item up or down. The methods in ItemDragHelper will calculate and
+        // assign a new position value for the item whose uniqueId == draggingId.
+        if (draggingPos > targetPos) ItemDragHelper.moveItemToBefore(draggingId, targetId);
+        else ItemDragHelper.moveItemToAfter(draggingId, targetId);
 
         return true;
     }
