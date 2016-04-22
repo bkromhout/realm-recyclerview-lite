@@ -93,6 +93,9 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         // Get the primary key's column index and type.
         animatePrimaryKeyIndex = modelTable.getPrimaryKey();
         animatePrimaryKeyType = modelTable.getColumnType(animatePrimaryKeyIndex);
+        // Ensure that the primary key column isn't nullable.
+        if (modelTable.isColumnNullable(animatePrimaryKeyIndex)) throw new IllegalStateException("The primary key " +
+                "field must not be nullable (it must have the @Required annotation).");
 
         // If not null, ensure that the extra field is valid.
         if (animateExtraField != null) {
@@ -101,6 +104,9 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
             // If we couldn't find it, it doesn't exist.
             if (animateExtraFieldIndex == Table.NO_MATCH)
                 throw new IllegalArgumentException("animateExtraField must be a valid field name");
+            // Ensure that the column isn't nullable.
+            if (modelTable.isColumnNullable(animateExtraFieldIndex)) throw new IllegalStateException(
+                    "animateExtraField must not be nullable (it must have the @Required annotation).");
 
             // Try to get extra field's type.
             animateExtraFieldType = modelTable.getColumnType(animateExtraFieldIndex);

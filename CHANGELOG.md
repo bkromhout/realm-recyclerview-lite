@@ -1,5 +1,8 @@
 # realm-recyclerview-lite Changelog
 
+## 1.9.2
+* More Realm 0.89.0 support. Be sure that you add the `@Required` annotation to your primary key field and any fields used as extra animation fields
+
 ## 1.9.1
 * Support for Realm 0.89.0. Please note the changes in the drag and drop section!
 * Synced up fast scroll handle once and for all!
