@@ -50,10 +50,8 @@ class FastScroller extends LinearLayout {
         public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
             if (handle.isSelected()) return;
 
-            int scrollOffset = recyclerView.computeVerticalScrollOffset();
-            int scrollRange = recyclerView.computeVerticalScrollRange();
-            int scrollExtent = recyclerView.computeVerticalScrollExtent();
-            float proportion = computeProportion(scrollOffset, scrollRange, scrollExtent);
+            float proportion = computeScrollProportionRelativeToMax(recyclerView.computeVerticalScrollOffset(),
+                    recyclerView.computeVerticalScrollRange(), recyclerView.computeVerticalScrollExtent());
 
             setBubbleAndHandlePosition(height * proportion, proportion);
         }
@@ -101,10 +99,8 @@ class FastScroller extends LinearLayout {
                     recyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
                     if (handle.isSelected()) return true;
 
-                    int scrollOffset = recyclerView.computeVerticalScrollOffset();
-                    int scrollRange = recyclerView.computeVerticalScrollRange();
-                    int scrollExtent = recyclerView.computeVerticalScrollExtent();
-                    float proportion = computeProportion(scrollOffset, scrollRange, scrollExtent);
+                    float proportion = computeScrollProportionRelativeToMax(recyclerView.computeVerticalScrollOffset(),
+                            recyclerView.computeVerticalScrollRange(), recyclerView.computeVerticalScrollExtent());
 
                     setBubbleAndHandlePosition(height * proportion, proportion);
                     return true;
@@ -210,8 +206,8 @@ class FastScroller extends LinearLayout {
                 if (autoHideHandle) showHandle();
                 // Set the positions of the bubble (unless we aren't using it), the handle, and the recyclerview.
                 float y = event.getY();
-                setRecyclerViewPosition(y);
                 setBubbleAndHandlePosition(y);
+                setRecyclerViewPosition(y);
                 return true;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
@@ -230,13 +226,16 @@ class FastScroller extends LinearLayout {
     private void setRecyclerViewPosition(float y) {
         if (recyclerView != null) {
             int itemCount = recyclerView.getAdapter().getItemCount();
-            float proportion;
+            float targetItemProportion;
 
-            if (handle.getY() == 0) proportion = 0f;
-            else if (handle.getY() + handle.getHeight() >= height) proportion = 1f;
-            else proportion = y / ((float) height + (float) handle.getHeight());
+            if (handle.getY() == 0) targetItemProportion = 0f;
+            else if (handle.getY() + handle.getHeight() >= height) targetItemProportion = 1f;
+            else targetItemProportion = y / ((float) height - (float) handle.getHeight());
 
-            int targetPos = (int) getValueInRange(0, itemCount - 1, proportion * (float) itemCount);
+            targetItemProportion *= computeMaxScrollProportion(recyclerView.computeVerticalScrollRange(),
+                    recyclerView.computeVerticalScrollExtent());
+
+            int targetPos = (int) getValueInRange(0, itemCount - 1, targetItemProportion * (float) itemCount);
             ((LinearLayoutManager) recyclerView.getLayoutManager()).scrollToPositionWithOffset(targetPos, 0);
 
             if (useBubble) {
@@ -261,14 +260,51 @@ class FastScroller extends LinearLayout {
         }
     }
 
+    /**
+     * Returns {@code value} so long as it is within the range of {@code min} to {@code max}.
+     * @param min   Minimum.
+     * @param max   Maximum.
+     * @param value Value to return if in range.
+     * @return {@code value} if {@code min <= value <= max}, {@code min} if {@code value < min}, or {@code max} if
+     * {@code value > max}.
+     */
     private float getValueInRange(float min, float max, float value) {
         float minimum = Math.max(min, value);
         return Math.min(minimum, max);
     }
 
-    private float computeProportion(int scrollOffset, int scrollRange, int scrollExtent) {
-        float maxProportion = scrollRange - scrollExtent;
-        return (float) scrollOffset / maxProportion;
+    /**
+     * Computes the maximum scroll offset necessary to show the last item in the recycler view by doing {@code
+     * scrollRange - scrollExtent}.
+     * @param scrollRange  Scroll range.
+     * @param scrollExtent Scroll extent.
+     * @return Maximum scroll offset.
+     */
+    private int computeMaxScrollOffset(int scrollRange, int scrollExtent) {
+        return scrollRange - scrollExtent;
+    }
+
+    /**
+     * Computes the maximum scroll proportion by dividing {@link #computeMaxScrollOffset(int, int)} by {@code
+     * scrollRange}.
+     * @param scrollRange  Scroll range.
+     * @param scrollExtent Scroll extent.
+     * @return Maximum scroll proportion.
+     */
+    private float computeMaxScrollProportion(int scrollRange, int scrollExtent) {
+        return (float) computeMaxScrollOffset(scrollRange, scrollExtent) / (float) scrollRange;
+    }
+
+    /**
+     * Computes the scroll proportion relative to the maximum scroll offset by dividing {@code scrollOffset} by {@link
+     * #computeMaxScrollOffset(int, int)}.
+     * @param scrollOffset Scroll offset.
+     * @param scrollRange  Scroll range.
+     * @param scrollExtent Scroll extent.
+     * @return Scroll proportion, relative to the maximum scroll offset.
+     */
+    private float computeScrollProportionRelativeToMax(int scrollOffset, int scrollRange, int scrollExtent) {
+        return (float) scrollOffset / (float) computeMaxScrollOffset(scrollRange, scrollExtent);
     }
 
     /**
@@ -453,6 +489,10 @@ class FastScroller extends LinearLayout {
         }
     }
 
+    /**
+     * Convenience method to notify the handle listener if certain conditions are met.
+     * @param state State to notify the handle listener of.
+     */
     private void notifyHandleListener(FastScrollerHandleState state) {
         // The event will be sent if we have a listener, and if it's either not a visibility event or we aren't eating
         // the visibility events (and thus we don't care what it is).

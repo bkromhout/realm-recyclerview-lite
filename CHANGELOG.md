@@ -2,6 +2,7 @@
 
 ## 1.9.1
 * Support for Realm 0.89.0. Please note the changes in the drag and drop section!
+* Synced up fast scroll handle once and for all!
 
 ## 1.9.0
 * Fixed CHANGELOG

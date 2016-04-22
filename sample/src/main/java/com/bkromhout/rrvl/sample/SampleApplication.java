@@ -18,7 +18,7 @@ public class SampleApplication extends Application {
                     @Override
                     public void execute(Realm realm) {
                         ArrayList<Item> items = new ArrayList<>(100);
-                        for (int i = 0; i < 15; i++)
+                        for (int i = 0; i < 100; i++)
                             items.add(new Item(String.valueOf(i / 10) + " Item " + String.valueOf(i)));
                         realm.copyToRealm(items);
                     }
