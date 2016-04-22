@@ -37,7 +37,7 @@ dependencies {
     }
 }
 ```
-Please note that at this time, realm-recyclerview-lite has been tested and is verified to work with **Realm 0.88.3**. Don't be afraid to try a newer version of Realm, just be sure to open an issue if you run into problems.
+Please note that at this time, realm-recyclerview-lite has been tested and is verified to work with **Realm 0.89.0**. Don't be afraid to try a newer version of Realm, just be sure to open an issue if you run into problems.
 
 **realm-recyclerview-lite is compatible with Android API Levels >= 11.**
 
@@ -133,7 +133,8 @@ These are the full methods from the sample app's [`ItemAdapter` class][ItemAdapt
 public void onBindViewHolder(final ItemVH holder, int position) {
     Item item = realmResults.get(position);
     holder.name.setText(item.name);
-    // We set the unique ID as the tag on a view so that we will be able to get it in the onMove() method.
+    // We set the unique ID as the tag on a view so that we will be able to get it
+    // in the onMove() method.
     holder.content.setTag(item.uniqueId);
     // Grabbing the drag handle should trigger a drag.
     holder.dragHandle.setOnTouchListener(new View.OnTouchListener() {
@@ -156,36 +157,23 @@ public boolean onMove(RecyclerView.ViewHolder dragging, RecyclerView.ViewHolder 
     long draggingId = (long) ((ItemVH) dragging).content.getTag();
     long targetId = (long) ((ItemVH) target).content.getTag();
 
-    // Determine if we can swap the items or if we need to actually move the item being dragged.
-    if (Math.abs(draggingPos - targetPos) == 1)
-        // Swapped.
-        ItemDragHelper.swapItemPositions(draggingId, targetId);
-    else if (draggingPos > targetPos)
-        // Moved up multiple.
-        ItemDragHelper.moveItemToBefore(draggingId, targetId);
-    else
-        // Moved down multiple.
-        ItemDragHelper.moveItemToAfter(draggingId, targetId);
+    // Move the item up or down. The methods in ItemDragHelper will calculate and
+    // assign a new position value for the item whose uniqueId == draggingId.
+    if (draggingPos > targetPos) ItemDragHelper.moveItemToBefore(draggingId, targetId);
+    else ItemDragHelper.moveItemToAfter(draggingId, targetId);
 
     return true;
 }
 ```
-Please note how we've ensured that the `onMove` method will have access to the value in each `Item`'s `uniqueId` field by storing that value as the tag of `content` View from the view holder.
+Note how we've ensured that the `onMove` method will have access to the value in each `Item`'s `uniqueId` field by storing that value as the tag of the `content` view in the view holder.
 
-I have to insist at this point that you look at some of the sample application's classes, I can't just dump the whole thing into this README file (But I will give you links).  
-First, if you haven't done so already, take a quick look at [`Item` model class][Item Class].  
-Then look at the [`ItemDragHelper` class][ItemDragHelper Class]. (It can be a bit daunting, though I've tried to comment it as heavily as possible.)
+Please take a moment to look at some of the sample application's classes if you haven't done so yet. Especially relevant here are the [`Item` model class][Item Class] and the [`ItemDragHelper` class][ItemDragHelper Class].
 
-It's vitally important that you understand at least the *concept* of how the methods in `ItemDragHelper` work because you will need to implement some version of these concepts as well. If you're lucky then you may be able to adapt mine for your use. I won't detail it here, but if you want to read a bit more about my ordering scheme, [you can read this][Ordering Notes].
+It's vitally important that you understand at least the *concept* of how the methods in `ItemDragHelper` work because you will need to implement something similar. If you're lucky then you may be able to adapt mine for your use. I won't detail it here, but if you want to read a bit more about my ordering scheme, [you can read this][Ordering Notes].
 
-You'll notice that we have to handle three cases in the `onMove` method:
-1. An item has been swapped with another item (AKA, dragged up or down one position)
-2. An item has been moved up multiple positions
-3. An item has been moved down multiple positions
-
-You ***MUST*** handle **at least** the latter two cases for drag and drop to work smoothly (and honestly you *should* handle all three of them. While the "swap" could be treated the same as a "move", it is less performant to do so. Look at the difference between what I do in the `ItemDragHelper.swapItemPositions` method versus the `ItemDragHelper.moveItemTo*` methods).  
-The reason for this is that when an item gets dragged further than what Android would consider a "swap" in a short enough period of time, it tends to batch those changes into a single "move".  
-Don't make the same mistakes I did and waste your own time; handle all three cases.
+You'll notice that we **must** handle two cases in the `onMove` method:
+1. An item has been moved up
+2. An item has been moved down
 
 You should also notice that nowhere in this code, be it the `onMove` method above or the methods in `ItemDragHelper`, do we call *any* of the `notify*Changed` methods. This is intended, because `RealmBasedRecyclerViewAdapter` handles making the correct calls for you when it detects the changes you've made to your data (it relies on a `RealmChangeListener` to get these notifications, and if you wish to see how it decides which of the `notify*Changed` methods to call, take a look at the [`RealmBasedRecyclerViewAdapter` class][RealmBasedRecyclerViewAdapter Class]).
 

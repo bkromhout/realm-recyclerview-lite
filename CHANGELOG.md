@@ -1,5 +1,8 @@
 # realm-recyclerview-lite Changelog
 
+## 1.9.1
+* Support for Realm 0.89.0. Please note the changes in the drag and drop section!
+
 ## 1.9.0
 * Fixed CHANGELOG
 * Renamed attributes

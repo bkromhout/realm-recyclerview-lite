@@ -15,28 +15,7 @@ import java.util.ArrayList;
  */
 public class ItemDragHelper {
     /**
-     * Swaps the positions of the items whose unique IDs are {@code item1Id} and {@code item2Id}. Will do nothing if the
-     * items are the same.
-     * @param item1Id An item's unique ID.
-     * @param item2Id Another item's unique ID.
-     * @throws IllegalArgumentException if either item is null or items aren't from the same list.
-     */
-    public static void swapItemPositions(long item1Id, long item2Id) {
-        try (Realm realm = Realm.getDefaultInstance()) {
-            Item innerItem1 = realm.where(Item.class).equalTo("uniqueId", item1Id).findFirst();
-            Item innerItem2 = realm.where(Item.class).equalTo("uniqueId", item2Id).findFirst();
-
-            realm.beginTransaction();
-            // Swap the positions.
-            Long temp = innerItem1.position;
-            innerItem1.position = innerItem2.position;
-            innerItem2.position = temp;
-            realm.commitTransaction();
-        }
-    }
-
-    /**
-     * Moves the {@link Item} whose unique ID is {@code itemToMoveId} to somewhere before the {@lin Item} whose unique
+     * Moves the {@link Item} whose unique ID is {@code itemToMoveId} to somewhere before the {@link Item} whose unique
      * ID is {@code targetItemId}.
      * @param itemToMoveId Unique ID of item to move.
      * @param targetItemId Unique ID of item which item whose unique ID is {@code itemToMoveId} will be moved before.

@@ -45,7 +45,7 @@ public class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback
 
     @Override
     public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-        return makeMovementFlags(dragAndDrop ? ItemTouchHelper.UP | ItemTouchHelper.DOWN : 0, 0);
+        return makeMovementFlags(dragAndDrop ? (ItemTouchHelper.UP | ItemTouchHelper.DOWN) : 0, 0);
     }
 
     @Override
