@@ -121,7 +121,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     private List getIdsOfRealmResults() {
         if (!animateResults || realmResults == null || realmResults.size() == 0) return EMPTY_LIST;
 
-        //realmResults.syncIfNeeded();
+        realmResults.syncIfNeeded();
         // Get/Update IDs.
         List ids = new ArrayList(realmResults.size());
         for (int i = 0; i < realmResults.size(); i++) //noinspection unchecked
