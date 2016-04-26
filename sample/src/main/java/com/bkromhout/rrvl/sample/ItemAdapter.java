@@ -1,17 +1,22 @@
 package com.bkromhout.rrvl.sample;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.bkromhout.rrvl.BubbleTextProvider;
+import io.realm.Realm;
 import io.realm.RealmBasedRecyclerViewAdapter;
 import io.realm.RealmResults;
 
@@ -19,10 +24,12 @@ import io.realm.RealmResults;
  * Simple item adapter. Supports drag and drop and the fast scroller's bubble text.
  */
 public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter.ItemVH> implements BubbleTextProvider {
+    private Context context;
 
     public ItemAdapter(Context context, RealmResults<Item> realmResults) {
         super(context, realmResults, true, true, null);
         setHasStableIds(true);
+        this.context = context;
     }
 
     @Override
@@ -76,17 +83,44 @@ public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter
         return String.valueOf(realmResults.get(position).name.charAt(0));
     }
 
-    static class ItemVH extends RecyclerView.ViewHolder {
+    class ItemVH extends RecyclerView.ViewHolder {
         @Bind(R.id.content)
         RelativeLayout content;
         @Bind(R.id.drag_handle)
         ImageView dragHandle;
         @Bind(R.id.name)
         TextView name;
+        @Bind(R.id.delete_button)
+        ImageButton delete;
 
         public ItemVH(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
+            delete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    new MaterialDialog.Builder(context)
+                            .title(R.string.action_delete)
+                            .negativeText(R.string.cancel)
+                            .positiveText(R.string.ok)
+                            .onPositive(new MaterialDialog.SingleButtonCallback() {
+                                @Override
+                                public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                    final long uniqueId = (long) content.getTag();
+                                    try (Realm realm = Realm.getDefaultInstance()) {
+                                        realm.executeTransaction(new Realm.Transaction() {
+                                            @Override
+                                            public void execute(Realm realm) {
+                                                realm.where(Item.class).equalTo("uniqueId", uniqueId).findFirst()
+                                                     .deleteFromRealm();
+                                            }
+                                        });
+                                    }
+                                }
+                            })
+                            .show();
+                }
+            });
         }
     }
 }
