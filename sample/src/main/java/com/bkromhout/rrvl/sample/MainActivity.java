@@ -1,11 +1,15 @@
 package com.bkromhout.rrvl.sample;
 
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -45,10 +49,71 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if (menu != null) for (int i = 0; i < menu.size(); i++)
+            menu.getItem(i).getIcon().setColorFilter(ContextCompat.getColor(this, android.R.color.white),
+                    PorterDuff.Mode.SRC_IN);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         adapter.close();
         realm.close();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.add_item:
+                new MaterialDialog.Builder(this)
+                        .title(R.string.action_add)
+                        .autoDismiss(false)
+                        .negativeText(R.string.cancel)
+                        .onNegative(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .input("New Item Name", null, false, new MaterialDialog.InputCallback() {
+                            @Override
+                            public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
+                                // If it's the same value, do nothing.
+                                final String newName = input.toString().trim();
+
+                                // Get Realm to check if name exists.
+                                try (Realm innerRealm = Realm.getDefaultInstance()) {
+                                    // If the name exists, set the error text on the edit text. If it doesn't, add it
+                                    // and dismiss the dialog.
+                                    if (innerRealm.where(Item.class).equalTo("name", newName).findFirst() != null) {
+                                        //noinspection ConstantConditions
+                                        dialog.getInputEditText().setError("Name is already taken.");
+                                    } else {
+                                        innerRealm.executeTransaction(new Realm.Transaction() {
+                                            @Override
+                                            public void execute(Realm realm) {
+                                                realm.copyToRealm(new Item(newName));
+                                            }
+                                        });
+                                        dialog.dismiss();
+                                    }
+                                }
+                            }
+                        })
+                        .show();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @OnClick(R.id.fab)

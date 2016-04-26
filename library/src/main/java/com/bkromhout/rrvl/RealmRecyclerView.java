@@ -49,25 +49,29 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
     private void init(Context context, AttributeSet attrs) {
         inflate(context, R.layout.realm_recycler_view, this);
 
-        // Read attributes.
-        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.RealmRecyclerView);
-        emptyViewId = typedArray.getResourceId(R.styleable.RealmRecyclerView_emptyLayoutId, 0);
-        // Drag and drop attributes.
-        dragAndDrop = typedArray.getBoolean(R.styleable.RealmRecyclerView_dragAndDrop, false);
-        boolean longClickTriggersDrag = typedArray.getBoolean(R.styleable.RealmRecyclerView_longClickTriggersDrag,
-                false);
-        // Fast scroll attributes.
-        fastScrollEnabled = typedArray.getBoolean(R.styleable.RealmRecyclerView_fastScroll, false);
-        boolean autoHideHandle = typedArray.getBoolean(R.styleable.RealmRecyclerView_autoHideFastScrollHandle, false);
-        int handleAutoHideDelay = typedArray.getInt(R.styleable.RealmRecyclerView_handleAutoHideDelay,
-                FastScroller.DEFAULT_HANDLE_HIDE_DELAY);
-        boolean useFastScrollBubble = typedArray.getBoolean(R.styleable.RealmRecyclerView_useFastScrollBubble, false);
-        typedArray.recycle();
-
         // Get views.
         recyclerView = (RecyclerView) findViewById(R.id.rrv_recycler_view);
         fastScroller = (FastScroller) findViewById(R.id.rrv_fast_scroller);
         emptyContentContainer = (ViewStub) findViewById(R.id.rrv_empty_content_container);
+
+        // Read attributes and set things up.
+        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.RealmRecyclerView);
+        emptyViewId = typedArray.getResourceId(R.styleable.RealmRecyclerView_emptyLayoutId, 0);
+        // Drag and drop.
+        dragAndDrop = typedArray.getBoolean(R.styleable.RealmRecyclerView_dragAndDrop, false);
+        touchHelperCallback = new RealmSimpleItemTouchHelperCallback(dragAndDrop,
+                typedArray.getBoolean(R.styleable.RealmRecyclerView_longClickTriggersDrag, false));
+        touchHelper = new ItemTouchHelper(touchHelperCallback);
+        touchHelper.attachToRecyclerView(recyclerView);
+        // Fast scroll.
+        setFastScroll(typedArray.getBoolean(R.styleable.RealmRecyclerView_fastScroll, false));
+        fastScroller.setAutoHideHandle(typedArray.getBoolean(R.styleable.RealmRecyclerView_autoHideFastScrollHandle,
+                false));
+        fastScroller.setAutoHideDelay(typedArray.getInt(R.styleable.RealmRecyclerView_handleAutoHideDelay,
+                FastScroller.DEFAULT_HANDLE_HIDE_DELAY));
+        fastScroller.setUseBubble(typedArray.getBoolean(R.styleable.RealmRecyclerView_useFastScrollBubble, false));
+        fastScroller.setRecyclerView(recyclerView);
+        typedArray.recycle();
 
         // Inflate empty view if present.
         if (emptyViewId != 0) {
@@ -96,20 +100,6 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
             }
         });
         recyclerView.setHasFixedSize(true);
-
-        // Drag and drop.
-        touchHelperCallback = new RealmSimpleItemTouchHelperCallback(dragAndDrop, longClickTriggersDrag);
-        touchHelper = new ItemTouchHelper(touchHelperCallback);
-        touchHelper.attachToRecyclerView(recyclerView);
-
-        // Fast scroll.
-        fastScroller.setRecyclerView(recyclerView);
-        fastScroller.setUseBubble(useFastScrollBubble);
-        fastScroller.setAutoHideHandle(autoHideHandle);
-        fastScroller.setAutoHideDelay(handleAutoHideDelay);
-        // Only show system scrollbar if we don't have a fast scroller.
-        recyclerView.setVerticalScrollBarEnabled(!fastScrollEnabled);
-        if (fastScrollEnabled) fastScroller.setVisibility(VISIBLE);
     }
 
     private void updateEmptyContentContainerVisibility(RecyclerView.Adapter adapter) {
