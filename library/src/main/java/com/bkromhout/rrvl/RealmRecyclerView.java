@@ -13,8 +13,6 @@ import io.realm.RealmBasedRecyclerViewAdapter;
 
 /**
  * A RecyclerView that supports Realm.
- * <p/>
- * TODO Getters
  */
 public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyclerViewAdapter.StartDragListener {
     // Views.
@@ -104,7 +102,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
 
     private void updateEmptyContentContainerVisibility(RecyclerView.Adapter adapter) {
         if (emptyViewId == 0) return;
-        emptyContentContainer.setVisibility(adapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
+        emptyContentContainer.setVisibility(adapter != null && adapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -120,47 +118,49 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
         this.adapter = adapter;
         recyclerView.setAdapter(adapter);
 
-        // Support for drag and drop.
         touchHelperCallback.setListener(adapter);
-        adapter.setOnStartDragListener(this);
 
-        adapter.registerAdapterDataObserver(
-                new RecyclerView.AdapterDataObserver() {
-                    @Override
-                    public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
-                        super.onItemRangeMoved(fromPosition, toPosition, itemCount);
-                        update();
-                    }
+        if (adapter != null) {
+            adapter.setOnStartDragListener(this);
 
-                    @Override
-                    public void onItemRangeRemoved(int positionStart, int itemCount) {
-                        super.onItemRangeRemoved(positionStart, itemCount);
-                        update();
-                    }
+            adapter.registerAdapterDataObserver(
+                    new RecyclerView.AdapterDataObserver() {
+                        @Override
+                        public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
+                            super.onItemRangeMoved(fromPosition, toPosition, itemCount);
+                            update();
+                        }
 
-                    @Override
-                    public void onItemRangeInserted(int positionStart, int itemCount) {
-                        super.onItemRangeInserted(positionStart, itemCount);
-                        update();
-                    }
+                        @Override
+                        public void onItemRangeRemoved(int positionStart, int itemCount) {
+                            super.onItemRangeRemoved(positionStart, itemCount);
+                            update();
+                        }
 
-                    @Override
-                    public void onItemRangeChanged(int positionStart, int itemCount) {
-                        super.onItemRangeChanged(positionStart, itemCount);
-                        update();
-                    }
+                        @Override
+                        public void onItemRangeInserted(int positionStart, int itemCount) {
+                            super.onItemRangeInserted(positionStart, itemCount);
+                            update();
+                        }
 
-                    @Override
-                    public void onChanged() {
-                        super.onChanged();
-                        update();
-                    }
+                        @Override
+                        public void onItemRangeChanged(int positionStart, int itemCount) {
+                            super.onItemRangeChanged(positionStart, itemCount);
+                            update();
+                        }
 
-                    private void update() {
-                        updateEmptyContentContainerVisibility(adapter);
+                        @Override
+                        public void onChanged() {
+                            super.onChanged();
+                            update();
+                        }
+
+                        private void update() {
+                            updateEmptyContentContainerVisibility(adapter);
+                        }
                     }
-                }
-        );
+            );
+        }
         updateEmptyContentContainerVisibility(adapter);
     }
 
@@ -262,7 +262,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
 
     /**
      * Set whether to use the fast scroller bubble or not.
-     * <p/>
+     * <p>
      * If set to true, you need to have a class implement {@link BubbleTextProvider#getFastScrollBubbleText(int)} and
      * pass it to this {@link RealmRecyclerView} using {@link #setBubbleTextProvider(BubbleTextProvider)} so that the
      * fast scroller will know what text to put into the bubble.
