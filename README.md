@@ -43,7 +43,7 @@ Please note that at this time, realm-recyclerview-lite has been tested and is ve
 
 <a name="usage"/>
 ## Basic Usage
-Adding a `RealmRecyclerView` to your layout is simple:
+Start by adding a `RealmRecyclerView` to your layout:
 ```xml
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
@@ -56,12 +56,13 @@ Adding a `RealmRecyclerView` to your layout is simple:
 </RelativeLayout>
 ```
 
-The other important thing is to make sure that your adapter extends `RealmBasedRecyclerViewAdapter`. In keeping with the provided sample application, here is a (very slimmed down) version of an adapter:
+Next, create an adapter class which extends `RealmRecyclerViewAdapter`.  
+Here's a slimmed down version of the sample app's [`ItemAdapter` class][ItemAdapter Class]:
 ```java
-public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter.ItemVH> {
+public class ItemAdapter extends RealmRecyclerViewAdapter<Item, ItemAdapter.ItemVH> {
 
     public ItemAdapter(Context context, RealmResults<Item> realmResults) {
-        super(context, realmResults, true, true, null);
+        super(context, realmResults);
         setHasStableIds(true);
     }
 
@@ -81,13 +82,15 @@ public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter
         holder.name.setText(item.name);
     }
 
-    static class ItemVH extends RecyclerView.ViewHolder {
+    class ItemVH extends RecyclerView.ViewHolder {
         @Bind(R.id.content)
         RelativeLayout content;
         @Bind(R.id.drag_handle)
         ImageView dragHandle;
         @Bind(R.id.name)
         TextView name;
+        @Bind(R.id.delete_button)
+        ImageButton delete;
 
         public ItemVH(View itemView) {
             super(itemView);
@@ -97,13 +100,41 @@ public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter
 }
 ```
 
-If you look at the actual [`ItemAdapter` class][ItemAdapter Class], you'll notice that there are many other things present in it. We'll get to those as we discuss the features, this is just a bare-bones implementation.
+Any model class you wish to use display using a `RealmRecyclerViewAdapter` must implement the [`UIDModel` interface][UIDModel Class].  
+Here's a slimmed down version of the sample app's [`Item` class][Item Class]:
+```java
+public class Item extends RealmObject implements UIDModel {
+    public String name;
+    @Index
+    public long position;
+    @PrimaryKey
+    public long uniqueId;
 
-To set your adapter to a `RealmRecyclerView`, you simply call its `setAdapter` method.
+    public Item() {
+    }
+
+    public Item(String name) {
+        this.name = name;
+        this.position = nextPos;
+        nextPos += GAP;
+        this.uniqueId = nextUniqueId.getAndIncrement();
+    }
+
+    @Override
+    public Object getUID() {
+        // Use our uniqueId field as the UID.
+        return uniqueId;
+    }
+}
+```
+The `UIDModel.getUID` method allows a `RealmRecyclerViewAdapter` to obtain some value unique to each instance of a model class in order to support predictive animations.  
+If you're planning to return anything more than the value of a primary key field, as is shown here, I recommend that you read the JavaDoc in the `UIDModel` interface class.
+
+Finally, you only need to call `RealmRecyclerView.setAdapter` to set your adapter.
 
 A couple more points of note:
 * `RealmRecyclerView` supports **`LinearLayoutManager` only**
-* `RealmRecyclerView` is *not* actually a `RecyclerView` subclass, it's a `RelativeLayout`. If you need access to the real `RecyclerView` or `LinearLayoutManager` instances for some reason, you can use the `getRecyclerView` and `getLayoutManager` methods
+* `RealmRecyclerView` is *not* actually a `RecyclerView` subclass, it's a `FrameLayout`. If you need access to the real `RecyclerView` or `LinearLayoutManager` instances for some reason, you can use the `getRecyclerView` and `getLayoutManager` methods
 * When you're done using an adapter (such as when an Activity or Fragment is being destroyed), be sure to call its `close` method to prevent any possible Realm instance leaks
 
 <a name="drag-and-drop"/>
@@ -148,7 +179,7 @@ public void onBindViewHolder(final ItemVH holder, int position) {
 }
 
 @Override
-public boolean onMove(RecyclerView.ViewHolder dragging, RecyclerView.ViewHolder target) {
+    public boolean onMove(RecyclerView.ViewHolder dragging, RecyclerView.ViewHolder target) {
     // Get positions of items in adapter.
     int draggingPos = dragging.getAdapterPosition();
     int targetPos = target.getAdapterPosition();
@@ -175,7 +206,7 @@ You'll notice that we **must** handle two cases in the `onMove` method:
 1. An item has been moved up
 2. An item has been moved down
 
-You should also notice that nowhere in this code, be it the `onMove` method above or the methods in `ItemDragHelper`, do we call *any* of the `notify*Changed` methods. This is intended, because `RealmBasedRecyclerViewAdapter` handles making the correct calls for you when it detects the changes you've made to your data (it relies on a `RealmChangeListener` to get these notifications, and if you wish to see how it decides which of the `notify*Changed` methods to call, take a look at the [`RealmBasedRecyclerViewAdapter` class][RealmBasedRecyclerViewAdapter Class]).
+You should also notice that nowhere in this code, be it the `onMove` method above or the methods in `ItemDragHelper`, do we call *any* of the `notify*Changed` methods. This is intended, because `RealmRecyclerViewAdapter` handles making the correct calls for you when it detects the changes you've made to your data (it relies on a `RealmChangeListener` to get these notifications, and if you wish to see how it decides which of the `notify*Changed` methods to call, take a look at the [`RealmRecyclerViewAdapter` class][RealmRecyclerViewAdapter Class]).
 
 <a name="long-click-drag-trigger"/>
 ### Long Click as the Drag Trigger
@@ -203,7 +234,7 @@ Note that you *do* still have to implement the `onMove` method.
 
 <a name="multi-select"/>
 ## Multi-Select
-Multi-select support is achieved through these methods on `RealmBasedRecyclerViewAdapter`:
+Multi-select support is achieved through these methods on `RealmRecyclerViewAdapter`:
 * `boolean isSelected(int position)`
 * `int getSelectedItemCount()`
 * `List<T> getSelectedRealmObjects()`
@@ -217,7 +248,7 @@ Multi-select support is achieved through these methods on `RealmBasedRecyclerVie
 Additionally, there are `void saveInstanceState(Bundle out)` and `void restoreInstanceState(Bundle in)` methods which will save and restore the currently selected positions.
 
 You may make use of these how you wish. Here are some things to note, tips, etc:
-* The methods which change the set of selected items all call the appropriate `notify*Changed()` methods for you, *but they do not actually modify the state of your views*. In your overridden `onBindViewHolder` method, you should make a call like `selectedPositions.contains(position);` to check and see if the item at that position is currently selected.
+* The methods which change the set of selected items all call the appropriate `notify*Changed()` methods for you, *but they do not actually modify the state of your views*. In your overridden `onBindViewHolder` method, you should make a call to `isSelected(position);` to check and see if the item at that position is currently selected.
 * `clearSelections` is automatically called if the adapter is notified by Realm that the data has changed. So you cannot, for example, maintain a set of selected items and do drag-and-drop (At some point I hope to re-work multi-select to remove this limitation)
 * The `List` returned by `getSelectedRealmObjects` *is not* managed by Realm
 * All of these methods are well-documented, any questions which remain should be answered by referring to their JavaDoc.
@@ -272,24 +303,18 @@ Having a fast scroller is great, but sadly Android's built-in classes, like `Coo
 
 A good example of this is when you have a `FloatingActionButton` on the screen with your `RealmRecyclerView`. While you *can* create a "behavior" which will cause the `FloatingActionButton` to automatically show/hide itself as you scroll the `RealmRecyclerView` up/down, that behavior class won't pick up on the scrolling done with the fast scroller, only normal scrolling 😞.
 
-For my use case, I wanted the `FloatingActionButton` to hide itself when I grabbed the fast scroll handle, so I created the [`FastScrollHandleStateListener` interface][FastScrollHandleStateListener Class]. Here's how the [`MainActivity` class][MainActivity Class] implements it:
+For my use case, I wanted the `FloatingActionButton` to hide itself when I grabbed the fast scroll handle, so I created the [`FastScrollHandleStateListener` interface][FastScrollHandleStateListener Class]. Here's a snippet showing how that can be done:
 ```java
 @Override
 public void onHandleStateChanged(FastScrollerHandleState newState) {
     switch (newState) {
         case VISIBLE:
-            Log.d("MainActivity", "Handle visible.");
-            break;
         case HIDDEN:
-            Log.d("MainActivity", "Handle hidden.");
+        case RELEASED:
             break;
         case PRESSED:
             // Hide the FloatingActionButton.
             fab.hide();
-            Log.d("MainActivity", "Handle pressed.");
-            break;
-        case RELEASED:
-            Log.d("MainActivity", "Handle released.");
             break;
     }
 }
@@ -300,8 +325,8 @@ Note that the `VISIBLE` and `HIDDEN` states are only triggered if you have auto-
 
 <a name="fast-scroller-customization"/>
 ### Fast Scroller Customization
-It's a pretty sure bet that the default colors for the fast scroller isn't the one you want (it's that hot pink accent color that you get when you create a new app project in Android Studio 😉).  
-That, along with a number of other things, can be changed by overriding the following resources in the appropriate files in your project (I've included the defaults here):
+It's a pretty sure bet that the default color for the fast scroller isn't the one you want (it's that hot pink accent color that you get when you create a new app project in Android Studio 😉).  
+That, along with a number of other things, can be changed by overriding the following resources in the appropriate files in your project (the defaults are shown here):
 
 * In `colors.xml`:  
 ```xml
@@ -324,8 +349,9 @@ That, along with a number of other things, can be changed by overriding the foll
 [Item Class]: sample/src/main/java/com/bkromhout/rrvl/sample/Item.java
 [ItemAdapter Class]: sample/src/main/java/com/bkromhout/rrvl/sample/ItemAdapter.java
 [ItemDragHelper Class]: sample/src/main/java/com/bkromhout/rrvl/sample/ItemDragHelper.java
+[UIDModel Class]: library/src/main/java/com/bkromhout/rrvl/UIDModel.java
 [BubbleTextProvider Class]: library/src/main/java/com/bkromhout/rrvl/BubbleTextProvider.java
 [FastScrollHandleStateListener Class]: library/src/main/java/com/bkromhout/rrvl/FastScrollHandleStateListener.java
-[RealmBasedRecyclerViewAdapter Class]: library/src/main/java/io/realm/RealmBasedRecyclerViewAdapter.java
+[RealmRecyclerViewAdapter Class]: library/src/main/java/com/bkromhout/rrvl/RealmRecyclerViewAdapter.java
 [Ordering Notes]: md-files/ordering-scheme-notes.md
 [Origin]: md-files/origin.md
