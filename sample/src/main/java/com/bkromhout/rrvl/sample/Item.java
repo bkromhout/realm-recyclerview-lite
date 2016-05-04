@@ -1,5 +1,6 @@
 package com.bkromhout.rrvl.sample;
 
+import com.bkromhout.rrvl.UIDModel;
 import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
@@ -10,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Item model.
  */
-public class Item extends RealmObject {
+public class Item extends RealmObject implements UIDModel {
     /**
      * By default, have a 100 space gap between items. This helps us to not have to update every item's position when
      * moving one item.
@@ -35,6 +36,12 @@ public class Item extends RealmObject {
         this.position = nextPos;
         nextPos += GAP;
         this.uniqueId = nextUniqueId.getAndIncrement();
+    }
+
+    @Override
+    public Object getUID() {
+        // Use our uniqueId field as the UID.
+        return uniqueId;
     }
 
     @Override

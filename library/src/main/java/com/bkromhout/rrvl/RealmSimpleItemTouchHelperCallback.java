@@ -7,7 +7,11 @@ import android.support.v7.widget.helper.ItemTouchHelper;
  * Implementation of {@code ItemTouchHelper.Callback} for supporting drag and drop. Adapted from <a
  * href="https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-b9456d2b1aaf">this article</a>.
  */
-public class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
+class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
+    interface Listener {
+        boolean onMove(RecyclerView.ViewHolder dragging, RecyclerView.ViewHolder target);
+    }
+
     private boolean dragAndDrop;
     private boolean longClickTriggersDrag;
     private Listener listener;
@@ -56,9 +60,5 @@ public class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback
     @Override
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
         // Never called.
-    }
-
-    public interface Listener {
-        boolean onMove(RecyclerView.ViewHolder dragging, RecyclerView.ViewHolder target);
     }
 }

@@ -16,18 +16,18 @@ import butterknife.ButterKnife;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bkromhout.rrvl.BubbleTextProvider;
+import com.bkromhout.rrvl.RealmRecyclerViewAdapter;
 import io.realm.Realm;
-import io.realm.RealmBasedRecyclerViewAdapter;
 import io.realm.RealmResults;
 
 /**
  * Simple item adapter. Supports drag and drop and the fast scroller's bubble text.
  */
-public class ItemAdapter extends RealmBasedRecyclerViewAdapter<Item, ItemAdapter.ItemVH> implements BubbleTextProvider {
+public class ItemAdapter extends RealmRecyclerViewAdapter<Item, ItemAdapter.ItemVH> implements BubbleTextProvider {
     private Context context;
 
     public ItemAdapter(Context context, RealmResults<Item> realmResults) {
-        super(context, realmResults, true, true, null);
+        super(context, realmResults);
         setHasStableIds(true);
         this.context = context;
     }
