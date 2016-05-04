@@ -40,6 +40,7 @@ import java.util.List;
 public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH extends RecyclerView.ViewHolder> extends
         RecyclerView.Adapter<VH> implements RealmSimpleItemTouchHelperCallback.Listener {
     private static final String SEL_POSITIONS_KEY = "rrvl-state-key-selected-positions";
+    private static final List<Long> EMPTY_LIST = new ArrayList<>(0);
 
     /**
      * Implemented by {@link RealmRecyclerView} so that we can call it to have it start a drag event.
@@ -48,10 +49,8 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         void startDragging(RecyclerView.ViewHolder viewHolder);
     }
 
-    private static final List<Long> EMPTY_LIST = new ArrayList<>(0);
-
     private StartDragListener startDragListener;
-    private RealmChangeListener changeListener;
+    private RealmChangeListener<RealmResults<T>> changeListener;
 
     private boolean animateResults;
     private boolean gotAnimationInfo = false;
@@ -121,7 +120,6 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     private List getIdsOfRealmResults() {
         if (!animateResults || realmResults == null || realmResults.size() == 0) return EMPTY_LIST;
 
-        realmResults.syncIfNeeded();
         // Get/Update IDs.
         List ids = new ArrayList(realmResults.size());
         for (int i = 0; i < realmResults.size(); i++) //noinspection unchecked
@@ -153,10 +151,10 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         return rowId;
     }
 
-    private RealmChangeListener getRealmChangeListener() {
-        return new RealmChangeListener() {
+    private RealmChangeListener<RealmResults<T>> getRealmChangeListener() {
+        return new RealmChangeListener<RealmResults<T>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<T> newResults) {
                 clearSelections();
 
                 if (animateResults && ids != null && !ids.isEmpty()) {
@@ -268,10 +266,10 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
      * @param queryResults the new RealmResults coming from the new query.
      */
     public void updateRealmResults(RealmResults<T> queryResults) {
-        if (changeListener != null && realmResults != null) realmResults.realm.removeChangeListener(changeListener);
+        if (changeListener != null && realmResults != null) realmResults.removeChangeListener(changeListener);
 
         realmResults = queryResults;
-        if (realmResults != null) realmResults.realm.addChangeListener(changeListener);
+        if (realmResults != null && changeListener != null) realmResults.addChangeListener(changeListener);
 
         selectedPositions.clear();
         lastSelectedPos = -1;

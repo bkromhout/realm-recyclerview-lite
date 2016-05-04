@@ -34,6 +34,8 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
     private Realm realm;
     private RealmBasedRecyclerViewAdapter adapter;
 
+    private boolean logHandleEvents = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,8 +53,8 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         if (menu != null) for (int i = 0; i < menu.size(); i++)
-            menu.getItem(i).getIcon().setColorFilter(ContextCompat.getColor(this, android.R.color.white),
-                    PorterDuff.Mode.SRC_IN);
+            if (menu.getItem(i).getIcon() != null) menu.getItem(i).getIcon().setColorFilter(
+                    ContextCompat.getColor(this, android.R.color.white), PorterDuff.Mode.SRC_IN);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -73,40 +75,40 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.add_item:
+            case R.id.action_settings:
+                showOptionsDialog();
+                return true;
+            case R.id.action_bulk_add:
                 new MaterialDialog.Builder(this)
-                        .title(R.string.action_add)
-                        .autoDismiss(false)
-                        .negativeText(R.string.cancel)
-                        .onNegative(new MaterialDialog.SingleButtonCallback() {
-                            @Override
-                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                                dialog.dismiss();
-                            }
-                        })
-                        .input("New Item Name", null, false, new MaterialDialog.InputCallback() {
+                        .title(R.string.action_bulk_add)
+                        .input(R.string.prompt_bulk_add, 0, false, new MaterialDialog.InputCallback() {
                             @Override
                             public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
-                                // If it's the same value, do nothing.
-                                final String newName = input.toString().trim();
-
-                                // Get Realm to check if name exists.
-                                try (Realm innerRealm = Realm.getDefaultInstance()) {
-                                    // If the name exists, set the error text on the edit text. If it doesn't, add it
-                                    // and dismiss the dialog.
-                                    if (innerRealm.where(Item.class).equalTo("name", newName).findFirst() != null) {
-                                        //noinspection ConstantConditions
-                                        dialog.getInputEditText().setError("Name is already taken.");
-                                    } else {
-                                        innerRealm.executeTransaction(new Realm.Transaction() {
-                                            @Override
-                                            public void execute(Realm realm) {
-                                                realm.copyToRealm(new Item(newName));
-                                            }
-                                        });
-                                        dialog.dismiss();
+                                final int num = Integer.parseInt(input.toString());
+                                realm.executeTransaction(new Realm.Transaction() {
+                                    @Override
+                                    public void execute(Realm realm) {
+                                        Util.addXItems(realm, num);
                                     }
-                                }
+                                });
+                            }
+                        })
+                        .show();
+                return true;
+            case R.id.action_delete_all:
+                new MaterialDialog.Builder(this)
+                        .title(R.string.action_delete_all)
+                        .positiveText("Yes")
+                        .negativeText("No")
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                realm.executeTransaction(new Realm.Transaction() {
+                                    @Override
+                                    public void execute(Realm realm) {
+                                        Util.removeAllItems(realm);
+                                    }
+                                });
                             }
                         })
                         .show();
@@ -118,27 +120,66 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
 
     @OnClick(R.id.fab)
     void onFabClick() {
-        showOptionsDialog();
+        new MaterialDialog.Builder(this)
+                .title(R.string.action_add)
+                .autoDismiss(false)
+                .negativeText(R.string.cancel)
+                .onNegative(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.dismiss();
+                    }
+                })
+                .input("New Item Name", null, false, new MaterialDialog.InputCallback() {
+                    @Override
+                    public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
+                        // If it's the same value, do nothing.
+                        final String newName = input.toString().trim();
+
+                        // Get Realm to check if name exists.
+                        try (Realm innerRealm = Realm.getDefaultInstance()) {
+                            // If the name exists, set the error text on the edit text. If it doesn't, add it
+                            // and dismiss the dialog.
+                            if (innerRealm.where(Item.class).equalTo("name", newName).findFirst() != null) {
+                                //noinspection ConstantConditions
+                                dialog.getInputEditText().setError("Name is already taken.");
+                            } else {
+                                innerRealm.executeTransaction(new Realm.Transaction() {
+                                    @Override
+                                    public void execute(Realm realm) {
+                                        realm.copyToRealm(new Item(newName));
+                                    }
+                                });
+                                dialog.dismiss();
+                            }
+                        }
+                    }
+                })
+                .show();
     }
 
     @Override
     public void onHandleStateChanged(FastScrollerHandleState newState) {
-        switch (newState) {
-            case VISIBLE:
-                Log.d("MainActivity", "Handle visible.");
-                break;
-            case HIDDEN:
-                Log.d("MainActivity", "Handle hidden.");
-                break;
-            case PRESSED:
-                // Hide the FloatingActionButton.
-                fab.hide();
-                Log.d("MainActivity", "Handle pressed.");
-                break;
-            case RELEASED:
-                Log.d("MainActivity", "Handle released.");
-                break;
-        }
+        if (logHandleEvents) {
+            // Only log if we want that.
+            switch (newState) {
+                case VISIBLE:
+                    Log.d("MainActivity", "Handle visible.");
+                    break;
+                case HIDDEN:
+                    Log.d("MainActivity", "Handle hidden.");
+                    break;
+                case PRESSED:
+                    // Hide the FloatingActionButton.
+                    fab.hide();
+                    Log.d("MainActivity", "Handle pressed.");
+                    break;
+                case RELEASED:
+                    Log.d("MainActivity", "Handle released.");
+                    break;
+            }
+        } else if (newState == FastScrollerHandleState.PRESSED)
+            fab.hide();
     }
 
     private void showOptionsDialog() {
@@ -148,6 +189,7 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
         final CheckBox fastScroll = ButterKnife.findById(content, R.id.fast_scroll);
         final CheckBox autoHideHandle = ButterKnife.findById(content, R.id.auto_hide_handle);
         final EditText autoHideDelay = ButterKnife.findById(content, R.id.auto_hide_delay);
+        final CheckBox logHandleEvents = ButterKnife.findById(content, R.id.log_handle_events);
         final CheckBox useBubble = ButterKnife.findById(content, R.id.use_bubble);
 
         dragAndDrop.setChecked(recyclerView.getDragAndDrop());
@@ -155,6 +197,7 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
         fastScroll.setChecked(recyclerView.getFastScroll());
         autoHideHandle.setChecked(recyclerView.getAutoHideFastScrollHandle());
         autoHideDelay.setText(String.valueOf(recyclerView.getHandleAutoHideDelay()));
+        logHandleEvents.setChecked(this.logHandleEvents);
         useBubble.setChecked(recyclerView.getUseFastScrollBubble());
 
         new MaterialDialog.Builder(this)
@@ -173,6 +216,7 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
                         } catch (NumberFormatException e) {
                             recyclerView.setHandleAutoHideDelay(-1);
                         }
+                        MainActivity.this.logHandleEvents = logHandleEvents.isChecked();
                         recyclerView.setUseFastScrollBubble(useBubble.isChecked());
                     }
                 })

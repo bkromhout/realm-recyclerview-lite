@@ -58,6 +58,15 @@
             android:hint="@string/handle_auto_hide_delay"/>
 
     <CheckBox
+            android:id="@+id/log_handle_events"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_gravity="center_vertical"
+            android:text="@string/log_handle_events"
+            style="@style/TextAppearance.AppCompat.Medium"/>
+
+    <CheckBox
             android:id="@+id/use_bubble"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

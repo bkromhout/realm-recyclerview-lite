@@ -5,7 +5,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:2.1.0'
         classpath 'com.novoda:bintray-release:0.3.4' // clean build bintrayUpload -PdryRun={true|false}
-        classpath "io.realm:realm-gradle-plugin:0.89.1"
+        classpath "io.realm:realm-gradle-plugin:0.90.0"
     }
 }
 
