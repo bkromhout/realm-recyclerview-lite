@@ -1,5 +1,8 @@
 # realm-recyclerview-lite Changelog
 
+## 1.9.5
+* Updated to work with Realm 0.90.0
+
 ## 1.9.4
 * Fixed `NullPointerException` which occurred if `null` was passed to `RealmRecyclerView.setAdapter`
 
