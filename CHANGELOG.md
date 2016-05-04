@@ -1,5 +1,16 @@
 # realm-recyclerview-lite Changelog
 
+## 2.0.0
+* The project has been refactored so that the adapter class no longer needs to be under the `io.realm` package (AKA, we no longer are using internal Realm APIs!) 🎉. This is a very large breaking change, so be sure to read over the README and look at the sample project to see what's changed if the rest of the points here aren't sufficient
+* The `RealmBasedRecyclerViewAdapter` class has been removed and replaced with the `RealmRecyclerViewAdapter` class now that we no longer use internal Realm APIs. The class functions the same, except:
+    * The type variable for the adapter now has the signature `<T extends RealmModel & UIDModel, ...>` instead of `<T extends RealmObject, ...>` (`UIDModel` is explained a bit further down)
+    * The constructor now only takes a `Context` and `RealmResults` as its parameters.  
+    The `automaticUpdate` and `animateResults` parameters have been removed since those wishing to use a `RecyclerView` which doesn't automatically update need not use this library.  
+    The `animateExtraField` parameter has been removed because the same functionality can be achieved using the new `UIDModel` interface.
+    * The `getLastItem` method has been removed
+* Model classes which you want to display using a `RealmRecyclerViewAdapter` must implement [the `UIDModel` interface](../library/src/main/java/com/bkromhout/rrvl/UIDModel.java). It contains one method, `Object getUID()`, which allows the adapter to uniquely identify each item in order to continue to support predictive animations, drag-and-drop, etc without the use of Realm's internal APIs.  
+Those wishing to continue using the `animateExtraField` functionality can simply combine that field's value into whatever is returned
+
 ## 1.9.5
 * Updated to work with Realm 0.90.0
 
