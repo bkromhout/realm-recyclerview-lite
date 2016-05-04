@@ -112,7 +112,7 @@ public class RealmRecyclerView extends FrameLayout {
      * Set the adapter for this RealmRecyclerView.
      * @param adapter {@link RealmRecyclerViewAdapter}.
      */
-    public void setAdapter(final RealmRecyclerViewAdapter adapter) {
+    public final void setAdapter(final RealmRecyclerViewAdapter adapter) {
         this.adapter = adapter;
         recyclerView.setAdapter(adapter);
 
