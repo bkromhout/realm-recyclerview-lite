@@ -156,7 +156,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     private RealmChangeListener<RealmResults<T>> getRealmChangeListener() {
         return new RealmChangeListener<RealmResults<T>>() {
             @Override
-            public void onChange(RealmResults<T> realmResults) {
+            public void onChange(RealmResults<T> newResults) {
                 clearSelections();
 
                 if (animateResults && ids != null && !ids.isEmpty()) {
