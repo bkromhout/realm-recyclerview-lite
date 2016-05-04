@@ -11,6 +11,7 @@
     <string name="handle_auto_hide_delay">Auto-Hide Delay</string>
     <string name="use_bubble">Use Fast Scroll Bubble</string>
     <string name="action_add">Add Item</string>
+    <string name="action_settings">Settings</string>
     <string name="name_taken">Name already taken.</string>
     <string name="action_delete">Delete Item</string>
 </resources>

@@ -73,43 +73,8 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.add_item:
-                new MaterialDialog.Builder(this)
-                        .title(R.string.action_add)
-                        .autoDismiss(false)
-                        .negativeText(R.string.cancel)
-                        .onNegative(new MaterialDialog.SingleButtonCallback() {
-                            @Override
-                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                                dialog.dismiss();
-                            }
-                        })
-                        .input("New Item Name", null, false, new MaterialDialog.InputCallback() {
-                            @Override
-                            public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
-                                // If it's the same value, do nothing.
-                                final String newName = input.toString().trim();
-
-                                // Get Realm to check if name exists.
-                                try (Realm innerRealm = Realm.getDefaultInstance()) {
-                                    // If the name exists, set the error text on the edit text. If it doesn't, add it
-                                    // and dismiss the dialog.
-                                    if (innerRealm.where(Item.class).equalTo("name", newName).findFirst() != null) {
-                                        //noinspection ConstantConditions
-                                        dialog.getInputEditText().setError("Name is already taken.");
-                                    } else {
-                                        innerRealm.executeTransaction(new Realm.Transaction() {
-                                            @Override
-                                            public void execute(Realm realm) {
-                                                realm.copyToRealm(new Item(newName));
-                                            }
-                                        });
-                                        dialog.dismiss();
-                                    }
-                                }
-                            }
-                        })
-                        .show();
+            case R.id.settings:
+                showOptionsDialog();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -118,7 +83,42 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
 
     @OnClick(R.id.fab)
     void onFabClick() {
-        showOptionsDialog();
+        new MaterialDialog.Builder(this)
+                .title(R.string.action_add)
+                .autoDismiss(false)
+                .negativeText(R.string.cancel)
+                .onNegative(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.dismiss();
+                    }
+                })
+                .input("New Item Name", null, false, new MaterialDialog.InputCallback() {
+                    @Override
+                    public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
+                        // If it's the same value, do nothing.
+                        final String newName = input.toString().trim();
+
+                        // Get Realm to check if name exists.
+                        try (Realm innerRealm = Realm.getDefaultInstance()) {
+                            // If the name exists, set the error text on the edit text. If it doesn't, add it
+                            // and dismiss the dialog.
+                            if (innerRealm.where(Item.class).equalTo("name", newName).findFirst() != null) {
+                                //noinspection ConstantConditions
+                                dialog.getInputEditText().setError("Name is already taken.");
+                            } else {
+                                innerRealm.executeTransaction(new Realm.Transaction() {
+                                    @Override
+                                    public void execute(Realm realm) {
+                                        realm.copyToRealm(new Item(newName));
+                                    }
+                                });
+                                dialog.dismiss();
+                            }
+                        }
+                    }
+                })
+                .show();
     }
 
     @Override
