@@ -21,8 +21,8 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.bkromhout.rrvl.FastScrollHandleStateListener;
 import com.bkromhout.rrvl.FastScrollerHandleState;
 import com.bkromhout.rrvl.RealmRecyclerView;
+import com.bkromhout.rrvl.RealmRecyclerViewAdapter;
 import io.realm.Realm;
-import io.realm.RealmBasedRecyclerViewAdapter;
 import io.realm.RealmResults;
 
 public class MainActivity extends AppCompatActivity implements FastScrollHandleStateListener {
@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
     FloatingActionButton fab;
 
     private Realm realm;
-    private RealmBasedRecyclerViewAdapter adapter;
+    private RealmRecyclerViewAdapter adapter;
 
     private boolean logHandleEvents = false;
 

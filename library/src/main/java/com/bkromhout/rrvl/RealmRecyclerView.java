@@ -8,13 +8,12 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewStub;
-import android.widget.RelativeLayout;
-import io.realm.RealmBasedRecyclerViewAdapter;
+import android.widget.FrameLayout;
 
 /**
  * A RecyclerView that supports Realm.
  */
-public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyclerViewAdapter.StartDragListener {
+public class RealmRecyclerView extends FrameLayout {
     // Views.
     private RecyclerView recyclerView;
     private FastScroller fastScroller;
@@ -25,7 +24,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
     private boolean dragAndDrop;
     private boolean fastScrollEnabled;
 
-    private RealmBasedRecyclerViewAdapter adapter;
+    private RealmRecyclerViewAdapter adapter;
     private ItemTouchHelper touchHelper;
     private RealmSimpleItemTouchHelperCallback touchHelperCallback;
 
@@ -105,24 +104,22 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
         emptyContentContainer.setVisibility(adapter != null && adapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
     }
 
-    @Override
-    public final void startDragging(RecyclerView.ViewHolder viewHolder) {
+    final void startDragging(RecyclerView.ViewHolder viewHolder) {
         if (dragAndDrop && touchHelper != null) touchHelper.startDrag(viewHolder);
     }
 
     /**
      * Set the adapter for this RealmRecyclerView.
-     * @param adapter {@link RealmBasedRecyclerViewAdapter}.
+     * @param adapter {@link RealmRecyclerViewAdapter}.
      */
-    public void setAdapter(final RealmBasedRecyclerViewAdapter adapter) {
+    public final void setAdapter(final RealmRecyclerViewAdapter adapter) {
         this.adapter = adapter;
         recyclerView.setAdapter(adapter);
 
         touchHelperCallback.setListener(adapter);
 
         if (adapter != null) {
-            adapter.setOnStartDragListener(this);
-
+            adapter.setRealmRecyclerView(this);
             adapter.registerAdapterDataObserver(
                     new RecyclerView.AdapterDataObserver() {
                         @Override
@@ -262,7 +259,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
 
     /**
      * Set whether to use the fast scroller bubble or not.
-     * <p>
+     * <p/>
      * If set to true, you need to have a class implement {@link BubbleTextProvider#getFastScrollBubbleText(int)} and
      * pass it to this {@link RealmRecyclerView} using {@link #setBubbleTextProvider(BubbleTextProvider)} so that the
      * fast scroller will know what text to put into the bubble.
@@ -296,7 +293,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
      * @return Internal RecyclerView.
      */
     @SuppressWarnings("unused")
-    public RecyclerView getRecyclerView() {
+    public final RecyclerView getRecyclerView() {
         return recyclerView;
     }
 
@@ -305,7 +302,7 @@ public class RealmRecyclerView extends RelativeLayout implements RealmBasedRecyc
      * @return LinearLayoutManager.
      */
     @SuppressWarnings("unused")
-    public LinearLayoutManager getLayoutManager() {
+    public final LinearLayoutManager getLayoutManager() {
         return (LinearLayoutManager) recyclerView.getLayoutManager();
     }
 }

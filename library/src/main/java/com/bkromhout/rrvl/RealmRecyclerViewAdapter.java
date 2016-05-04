@@ -1,34 +1,15 @@
-/*
- * Originally based on io.realm.RealmBaseAdapter
- * =============================================
- * Copyright 2014 Realm Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package io.realm;
+package com.bkromhout.rrvl;
 
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import com.bkromhout.rrvl.RealmRecyclerView;
-import com.bkromhout.rrvl.RealmSimpleItemTouchHelperCallback;
 import difflib.Delta;
 import difflib.DiffUtils;
 import difflib.Patch;
-import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.Row;
-import io.realm.internal.Table;
+import io.realm.RealmChangeListener;
+import io.realm.RealmModel;
+import io.realm.RealmResults;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -37,28 +18,14 @@ import java.util.List;
 /**
  * The base {@code RecyclerView.Adapter} that includes custom functionality to be used with {@link RealmRecyclerView}.
  */
-public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH extends RecyclerView.ViewHolder> extends
-        RecyclerView.Adapter<VH> implements RealmSimpleItemTouchHelperCallback.Listener {
+public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, VH extends RecyclerView.ViewHolder>
+        extends RecyclerView.Adapter<VH> implements RealmSimpleItemTouchHelperCallback.Listener {
+
     private static final String SEL_POSITIONS_KEY = "rrvl-state-key-selected-positions";
     private static final List<Long> EMPTY_LIST = new ArrayList<>(0);
 
-    /**
-     * Implemented by {@link RealmRecyclerView} so that we can call it to have it start a drag event.
-     */
-    public interface StartDragListener {
-        void startDragging(RecyclerView.ViewHolder viewHolder);
-    }
-
-    private StartDragListener startDragListener;
+    private RealmRecyclerView rrv = null;
     private RealmChangeListener<RealmResults<T>> changeListener;
-
-    private boolean animateResults;
-    private boolean gotAnimationInfo = false;
-    private long animatePrimaryKeyIndex;
-    private RealmFieldType animatePrimaryKeyType;
-    private String animateExtraField;
-    private long animateExtraFieldIndex = -1;
-    private RealmFieldType animateExtraFieldType;
 
     protected LayoutInflater inflater;
     protected RealmResults<T> realmResults;
@@ -66,89 +33,25 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     protected HashSet<Integer> selectedPositions;
     protected int lastSelectedPos = -1;
 
-    public RealmBasedRecyclerViewAdapter(Context context, RealmResults<T> realmResults,
-                                         boolean automaticUpdate, boolean animateResults, String animateExtraField) {
+    public RealmRecyclerViewAdapter(Context context, RealmResults<T> realmResults) {
         if (context == null) throw new IllegalArgumentException("Context cannot be null");
-        this.changeListener = (!automaticUpdate) ? null : getRealmChangeListener();
-        this.animateResults = animateResults;
-        this.animateExtraField = animateExtraField;
+        this.changeListener = getRealmChangeListener();
         this.inflater = LayoutInflater.from(context);
 
         selectedPositions = new HashSet<>();
-
-        // If automatic updates aren't enabled, then animateResults should be false as well.
-        this.animateResults = (automaticUpdate && animateResults);
-
         updateRealmResults(realmResults);
     }
 
-    private void updateAnimationInfo() {
-        if (!animateResults || realmResults == null || gotAnimationInfo) return;
-        Table modelTable = realmResults.getTable().getTable();
-
-        // Ensure we have a primary key.
-        if (!modelTable.hasPrimaryKey())
-            throw new IllegalStateException("Animating the results requires a primary key.");
-        // Get the primary key's column index and type.
-        animatePrimaryKeyIndex = modelTable.getPrimaryKey();
-        animatePrimaryKeyType = modelTable.getColumnType(animatePrimaryKeyIndex);
-        // Ensure that the primary key column isn't nullable.
-        if (modelTable.isColumnNullable(animatePrimaryKeyIndex)) throw new IllegalStateException("The primary key " +
-                "field must not be nullable (it must have the @Required annotation).");
-
-        // If not null, ensure that the extra field is valid.
-        if (animateExtraField != null) {
-            // Get extra field's column index.
-            animateExtraFieldIndex = modelTable.getColumnIndex(animateExtraField);
-            // If we couldn't find it, it doesn't exist.
-            if (animateExtraFieldIndex == Table.NO_MATCH)
-                throw new IllegalArgumentException("animateExtraField must be a valid field name");
-            // Ensure that the column isn't nullable.
-            if (modelTable.isColumnNullable(animateExtraFieldIndex)) throw new IllegalStateException(
-                    "animateExtraField must not be nullable (it must have the @Required annotation).");
-
-            // Try to get extra field's type.
-            animateExtraFieldType = modelTable.getColumnType(animateExtraFieldIndex);
-            // Make sure it's a short/int/long or string.
-            if (animateExtraFieldType != RealmFieldType.INTEGER && animateExtraFieldType != RealmFieldType.STRING)
-                throw new IllegalArgumentException("animateExtraField must be short, int, long, or string type.");
-        }
-
-        gotAnimationInfo = true;
-    }
-
     private List getIdsOfRealmResults() {
-        if (!animateResults || realmResults == null || realmResults.size() == 0) return EMPTY_LIST;
+        if (realmResults == null || realmResults.size() == 0) return EMPTY_LIST;
 
         // Get/Update IDs.
         List ids = new ArrayList(realmResults.size());
-        for (int i = 0; i < realmResults.size(); i++) //noinspection unchecked
-            ids.add(getRealmRowId(i));
+        for (int i = 0; i < realmResults.size(); i++)
+            //noinspection unchecked
+            ids.add(realmResults.get(i).getUID());
 
         return ids;
-    }
-
-    private Object getRealmRowId(int realmIndex) {
-        Row row = ((RealmObjectProxy) realmResults.get(realmIndex)).realmGet$proxyState().getRow$realm();
-        Object rowId;
-
-        if (animatePrimaryKeyType == RealmFieldType.INTEGER)
-            rowId = row.getLong(animatePrimaryKeyIndex);
-        else if (animatePrimaryKeyType == RealmFieldType.STRING)
-            rowId = row.getString(animatePrimaryKeyIndex);
-        else throw new IllegalStateException("Unknown animatedIdType");
-
-        if (animateExtraFieldIndex != -1) {
-            String rowIdStr = rowId instanceof String ? (String) rowId : String.valueOf(rowId);
-
-            if (animateExtraFieldType == RealmFieldType.INTEGER)
-                return rowIdStr + String.valueOf(row.getLong(animateExtraFieldIndex));
-            else if (animateExtraFieldType == RealmFieldType.STRING)
-                return rowIdStr + row.getString(animateExtraFieldIndex);
-            else throw new IllegalStateException("Unknown animateExtraFieldType");
-        }
-
-        return rowId;
     }
 
     private RealmChangeListener<RealmResults<T>> getRealmChangeListener() {
@@ -157,7 +60,7 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
             public void onChange(RealmResults<T> newResults) {
                 clearSelections();
 
-                if (animateResults && ids != null && !ids.isEmpty()) {
+                if (ids != null && !ids.isEmpty()) {
                     List newIds = getIdsOfRealmResults();
 
                     // If the list is now empty, just notify the recyclerView of the change.
@@ -229,35 +132,23 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         return delete.getOriginal().getLines().get(0).equals(insert.getRevised().getLines().get(0));
     }
 
+    final void setRealmRecyclerView(RealmRecyclerView rrv) {
+        this.rrv = rrv;
+    }
+
     /**
-     * Start dragging the given {@code viewHolder}. Will do nothing if drag and drop isn't enabled.
+     * Start dragging the given {@code viewHolder}. Will do nothing if drag and drop isn't enabled or if the adapter
+     * isn't attached to a {@link RealmRecyclerView}.
      * @param viewHolder ViewHolder to start dragging.
      */
     @SuppressWarnings("unused")
     protected final void startDragging(RecyclerView.ViewHolder viewHolder) {
-        if (startDragListener != null) startDragListener.startDragging(viewHolder);
+        if (rrv != null) rrv.startDragging(viewHolder);
     }
 
     @Override
     public int getItemCount() {
         return realmResults != null ? realmResults.size() : 0;
-    }
-
-    @SuppressWarnings("unused")
-    public Object getLastItem() {
-        return realmResults.get(realmResults.size() - 1);
-    }
-
-    public final void setOnStartDragListener(StartDragListener startDragListener) {
-        this.startDragListener = startDragListener;
-    }
-
-    /**
-     * Ensure this is called whenever {@link Realm#close()} is called to ensure that the {@link #realmResults} are
-     * invalidated and the change listener removed.
-     */
-    public void close() {
-        updateRealmResults(null);
     }
 
     /**
@@ -273,9 +164,17 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
 
         selectedPositions.clear();
         lastSelectedPos = -1;
-        updateAnimationInfo();
         ids = getIdsOfRealmResults();
         notifyDataSetChanged();
+    }
+
+    /**
+     * Ensure this is called whenever {@code Realm.close()} is called to ensure that the {@link #realmResults} are
+     * invalidated and the change listener removed.
+     */
+    @SuppressWarnings("unused")
+    public final void close() {
+        updateRealmResults(null);
     }
 
     /**
@@ -471,4 +370,3 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
         }
     }
 }
-
