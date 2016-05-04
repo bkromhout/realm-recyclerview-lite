@@ -40,6 +40,7 @@ import java.util.List;
 public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH extends RecyclerView.ViewHolder> extends
         RecyclerView.Adapter<VH> implements RealmSimpleItemTouchHelperCallback.Listener {
     private static final String SEL_POSITIONS_KEY = "rrvl-state-key-selected-positions";
+    private static final List<Long> EMPTY_LIST = new ArrayList<>(0);
 
     /**
      * Implemented by {@link RealmRecyclerView} so that we can call it to have it start a drag event.
@@ -47,8 +48,6 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     public interface StartDragListener {
         void startDragging(RecyclerView.ViewHolder viewHolder);
     }
-
-    private static final List<Long> EMPTY_LIST = new ArrayList<>(0);
 
     private StartDragListener startDragListener;
     private RealmChangeListener<RealmResults<T>> changeListener;
@@ -121,7 +120,6 @@ public abstract class RealmBasedRecyclerViewAdapter<T extends RealmObject, VH ex
     private List getIdsOfRealmResults() {
         if (!animateResults || realmResults == null || realmResults.size() == 0) return EMPTY_LIST;
 
-        realmResults.syncIfNeeded();
         // Get/Update IDs.
         List ids = new ArrayList(realmResults.size());
         for (int i = 0; i < realmResults.size(); i++) //noinspection unchecked
