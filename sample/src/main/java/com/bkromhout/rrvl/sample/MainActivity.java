@@ -53,8 +53,8 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         if (menu != null) for (int i = 0; i < menu.size(); i++)
-            menu.getItem(i).getIcon().setColorFilter(ContextCompat.getColor(this, android.R.color.white),
-                    PorterDuff.Mode.SRC_IN);
+            if (menu.getItem(i).getIcon() != null) menu.getItem(i).getIcon().setColorFilter(
+                    ContextCompat.getColor(this, android.R.color.white), PorterDuff.Mode.SRC_IN);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -75,8 +75,43 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.settings:
+            case R.id.action_settings:
                 showOptionsDialog();
+                return true;
+            case R.id.action_bulk_add:
+                new MaterialDialog.Builder(this)
+                        .title(R.string.action_bulk_add)
+                        .input(R.string.prompt_bulk_add, 0, false, new MaterialDialog.InputCallback() {
+                            @Override
+                            public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
+                                final int num = Integer.parseInt(input.toString());
+                                realm.executeTransaction(new Realm.Transaction() {
+                                    @Override
+                                    public void execute(Realm realm) {
+                                        Util.addXItems(realm, num);
+                                    }
+                                });
+                            }
+                        })
+                        .show();
+                return true;
+            case R.id.action_delete_all:
+                new MaterialDialog.Builder(this)
+                        .title(R.string.action_delete_all)
+                        .positiveText("Yes")
+                        .negativeText("No")
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                realm.executeTransaction(new Realm.Transaction() {
+                                    @Override
+                                    public void execute(Realm realm) {
+                                        Util.removeAllItems(realm);
+                                    }
+                                });
+                            }
+                        })
+                        .show();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

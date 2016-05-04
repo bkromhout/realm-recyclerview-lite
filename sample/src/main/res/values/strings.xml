@@ -14,4 +14,7 @@
     <string name="action_add">Add Item</string>
     <string name="name_taken">Name already taken.</string>
     <string name="action_delete">Delete Item</string>
+    <string name="action_delete_all">Delete All Items</string>
+    <string name="action_bulk_add">Bulk Add Items</string>
+    <string name="prompt_bulk_add">Number to add</string>
 </resources>

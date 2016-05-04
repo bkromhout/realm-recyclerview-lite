@@ -4,7 +4,6 @@ import android.app.Application;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
-import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SampleApplication extends Application {
@@ -17,10 +16,7 @@ public class SampleApplication extends Application {
                 .initialData(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
-                        ArrayList<Item> items = new ArrayList<>(100);
-                        for (int i = 0; i < 15; i++)
-                            items.add(new Item(String.valueOf(i / 10) + " Item " + String.valueOf(i)));
-                        realm.copyToRealm(items);
+                        Util.addXItems(realm, 50);
                     }
                 })
                 .build());
