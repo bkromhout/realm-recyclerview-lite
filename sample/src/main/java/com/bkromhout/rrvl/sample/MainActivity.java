@@ -34,6 +34,8 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
     private Realm realm;
     private RealmBasedRecyclerViewAdapter adapter;
 
+    private boolean logHandleEvents = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -123,22 +125,26 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
 
     @Override
     public void onHandleStateChanged(FastScrollerHandleState newState) {
-        switch (newState) {
-            case VISIBLE:
-                Log.d("MainActivity", "Handle visible.");
-                break;
-            case HIDDEN:
-                Log.d("MainActivity", "Handle hidden.");
-                break;
-            case PRESSED:
-                // Hide the FloatingActionButton.
-                fab.hide();
-                Log.d("MainActivity", "Handle pressed.");
-                break;
-            case RELEASED:
-                Log.d("MainActivity", "Handle released.");
-                break;
-        }
+        if (logHandleEvents) {
+            // Only log if we want that.
+            switch (newState) {
+                case VISIBLE:
+                    Log.d("MainActivity", "Handle visible.");
+                    break;
+                case HIDDEN:
+                    Log.d("MainActivity", "Handle hidden.");
+                    break;
+                case PRESSED:
+                    // Hide the FloatingActionButton.
+                    fab.hide();
+                    Log.d("MainActivity", "Handle pressed.");
+                    break;
+                case RELEASED:
+                    Log.d("MainActivity", "Handle released.");
+                    break;
+            }
+        } else if (newState == FastScrollerHandleState.PRESSED)
+            fab.hide();
     }
 
     private void showOptionsDialog() {
@@ -148,6 +154,7 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
         final CheckBox fastScroll = ButterKnife.findById(content, R.id.fast_scroll);
         final CheckBox autoHideHandle = ButterKnife.findById(content, R.id.auto_hide_handle);
         final EditText autoHideDelay = ButterKnife.findById(content, R.id.auto_hide_delay);
+        final CheckBox logHandleEvents = ButterKnife.findById(content, R.id.log_handle_events);
         final CheckBox useBubble = ButterKnife.findById(content, R.id.use_bubble);
 
         dragAndDrop.setChecked(recyclerView.getDragAndDrop());
@@ -155,6 +162,7 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
         fastScroll.setChecked(recyclerView.getFastScroll());
         autoHideHandle.setChecked(recyclerView.getAutoHideFastScrollHandle());
         autoHideDelay.setText(String.valueOf(recyclerView.getHandleAutoHideDelay()));
+        logHandleEvents.setChecked(this.logHandleEvents);
         useBubble.setChecked(recyclerView.getUseFastScrollBubble());
 
         new MaterialDialog.Builder(this)
@@ -173,6 +181,7 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
                         } catch (NumberFormatException e) {
                             recyclerView.setHandleAutoHideDelay(-1);
                         }
+                        MainActivity.this.logHandleEvents = logHandleEvents.isChecked();
                         recyclerView.setUseFastScrollBubble(useBubble.isChecked());
                     }
                 })

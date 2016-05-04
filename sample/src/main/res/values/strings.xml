@@ -7,11 +7,11 @@
     <string name="long_click_triggers_drag">Long Click Triggers Drag</string>
     <string name="fast_scroll">Fast Scroll</string>
     <string name="auto_hide_handle">Auto-Hide Handle</string>
+    <string name="log_handle_events">Log Handle Events</string>
     <string name="auto_hide_handle_hint">Delay (milliseconds)</string>
     <string name="handle_auto_hide_delay">Auto-Hide Delay</string>
     <string name="use_bubble">Use Fast Scroll Bubble</string>
     <string name="action_add">Add Item</string>
-    <string name="action_settings">Settings</string>
     <string name="name_taken">Name already taken.</string>
     <string name="action_delete">Delete Item</string>
 </resources>
