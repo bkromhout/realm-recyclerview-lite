@@ -16,6 +16,7 @@ Please be sure to take a moment to look at the [Origin][Origin] section. You'll 
 * [Fast Scrolling](#fast-scrolling)  
     * [Handle State Notifications](#handle-state-notifications)  
     * [Fast Scroller Customization](#fast-scroller-customization)  
+* [Padding](#padding)  
 
 <a name="installation"/>
 ## Installation
@@ -341,6 +342,29 @@ That, along with a number of other things, can be changed by overriding the foll
 <dimen name="rrvl_handle_margin_end">8dp</dimen>
 <dimen name="rrvl_handle_padding_start">8dp</dimen>
 ```
+
+<a name="padding"/>
+## Padding
+Since `RealmRecyclerView` is technically a `FrameLayout`, setting its padding directly affects both its underlying `RecyclerView` and the position of the fast scroller.
+
+To counter this, `RealmRecyclerView` has a handful of attributes and a couple of methods which let you set padding values to just the underlying `RecyclerView`.
+
+The following attributes can be used on a `RealmRecyclerView` in XML:
+* `rvPadding`
+* `rvPaddingStart`
+* `rvPaddingTop`
+* `rvPaddingEnd`
+* `rvPaddingBottom`
+
+The following methods on `RealmRecyclerView` can also be used:
+* `setPadding(int padding)`
+* `setPadding(int start, int top, int end, int bottom)`
+
+Things to keep in mind:
+* These all default to 0
+* Values' units match the frameworks'. That is, the attributes accept any dimension value, while the methods interpret the number as pixels
+* The more specific attributes' values will override the value set for `rvPadding`
+* If the device's API level is below 17, start and end values will be treated as left and right values (respectively)
 
 [Minerva]: https://github.com/bkromhout/Minerva
 [CHANGELOG]: CHANGELOG.md
