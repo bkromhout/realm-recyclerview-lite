@@ -22,8 +22,10 @@ import io.realm.RealmResults;
 
 /**
  * Simple item adapter. Supports drag and drop and the fast scroller's bubble text.
+ * <p/>
+ * Adds an extra empty view to the bottom of the list to prevent the FAB from possibly overlapping an item card.
  */
-public class ItemAdapter extends RealmRecyclerViewAdapter<Item, ItemAdapter.ItemVH> implements BubbleTextProvider {
+public class ItemAdapter extends RealmRecyclerViewAdapter<Item, RecyclerView.ViewHolder> implements BubbleTextProvider {
     private Context context;
 
     public ItemAdapter(Context context, RealmResults<Item> realmResults) {
@@ -33,28 +35,46 @@ public class ItemAdapter extends RealmRecyclerViewAdapter<Item, ItemAdapter.Item
     }
 
     @Override
+    public int getItemCount() {
+        int superCount = super.getItemCount();
+        return superCount == 0 ? 0 : superCount + 1;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        if (super.getItemCount() != 0 && position == super.getItemCount()) return -1;
+        else return super.getItemViewType(position);
+    }
+
+    @Override
     public long getItemId(int position) {
+        if (position == super.getItemCount()) return Long.MIN_VALUE;
         return realmResults.get(position).uniqueId;
     }
 
     @Override
-    public ItemVH onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new ItemVH(inflater.inflate(R.layout.item_card, parent, false));
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        if (viewType == -1) return new RecyclerView.ViewHolder(
+                inflater.inflate(R.layout.empty_footer, parent, false)) {};
+        else return new ItemVH(inflater.inflate(R.layout.item_card, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(final ItemVH holder, int position) {
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
+        // If this is the empty view, we have nothing to do.
+        if (position == getItemCount() || !(holder instanceof ItemVH)) return;
+        final ItemVH vh = (ItemVH) holder;
         Item item = realmResults.get(position);
-        holder.name.setText(item.name);
+        vh.name.setText(item.name);
         // We set the unique ID as the tag on a view so that we will be able to get it
         // in the onMove() method.
-        holder.content.setTag(item.uniqueId);
+        vh.content.setTag(item.uniqueId);
         // Grabbing the drag handle should trigger a drag.
-        holder.dragHandle.setOnTouchListener(new View.OnTouchListener() {
+        vh.dragHandle.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN)
-                    startDragging(holder);
+                    startDragging(vh);
                 return false;
             }
         });

@@ -2,6 +2,7 @@ package com.bkromhout.rrvl;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -52,23 +53,15 @@ public class RealmRecyclerView extends FrameLayout {
         emptyContentContainer = (ViewStub) findViewById(R.id.rrv_empty_content_container);
 
         // Read attributes and set things up.
-        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.RealmRecyclerView);
-        emptyViewId = typedArray.getResourceId(R.styleable.RealmRecyclerView_emptyLayoutId, 0);
+        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.RealmRecyclerView);
+        emptyViewId = ta.getResourceId(R.styleable.RealmRecyclerView_emptyLayoutId, 0);
         // Drag and drop.
-        dragAndDrop = typedArray.getBoolean(R.styleable.RealmRecyclerView_dragAndDrop, false);
-        touchHelperCallback = new RealmSimpleItemTouchHelperCallback(dragAndDrop,
-                typedArray.getBoolean(R.styleable.RealmRecyclerView_longClickTriggersDrag, false));
-        touchHelper = new ItemTouchHelper(touchHelperCallback);
-        touchHelper.attachToRecyclerView(recyclerView);
+        initDragAndDrop(ta);
         // Fast scroll.
-        setFastScroll(typedArray.getBoolean(R.styleable.RealmRecyclerView_fastScroll, false));
-        fastScroller.setAutoHideHandle(typedArray.getBoolean(R.styleable.RealmRecyclerView_autoHideFastScrollHandle,
-                false));
-        fastScroller.setAutoHideDelay(typedArray.getInt(R.styleable.RealmRecyclerView_handleAutoHideDelay,
-                FastScroller.DEFAULT_HANDLE_HIDE_DELAY));
-        fastScroller.setUseBubble(typedArray.getBoolean(R.styleable.RealmRecyclerView_useFastScrollBubble, false));
-        fastScroller.setRecyclerView(recyclerView);
-        typedArray.recycle();
+        initFastScroller(ta);
+        // RecyclerView padding.
+        initRVPadding(ta);
+        ta.recycle();
 
         // Inflate empty view if present.
         if (emptyViewId != 0) {
@@ -97,6 +90,36 @@ public class RealmRecyclerView extends FrameLayout {
             }
         });
         recyclerView.setHasFixedSize(true);
+    }
+
+    private void initDragAndDrop(TypedArray ta) {
+        dragAndDrop = ta.getBoolean(R.styleable.RealmRecyclerView_dragAndDrop, false);
+        touchHelperCallback = new RealmSimpleItemTouchHelperCallback(dragAndDrop,
+                ta.getBoolean(R.styleable.RealmRecyclerView_longClickTriggersDrag, false));
+        touchHelper = new ItemTouchHelper(touchHelperCallback);
+        touchHelper.attachToRecyclerView(recyclerView);
+    }
+
+    private void initFastScroller(TypedArray ta) {
+        setFastScroll(ta.getBoolean(R.styleable.RealmRecyclerView_fastScroll, false));
+        fastScroller.setAutoHideHandle(ta.getBoolean(R.styleable.RealmRecyclerView_autoHideFastScrollHandle, false));
+        fastScroller.setAutoHideDelay(ta.getInt(R.styleable.RealmRecyclerView_handleAutoHideDelay,
+                FastScroller.DEFAULT_HANDLE_HIDE_DELAY));
+        fastScroller.setUseBubble(ta.getBoolean(R.styleable.RealmRecyclerView_useFastScrollBubble, false));
+        fastScroller.setRecyclerView(recyclerView);
+    }
+
+    private void initRVPadding(TypedArray ta) {
+        int padding = ta.getDimensionPixelSize(R.styleable.RealmRecyclerView_rvPadding, 0);
+        int paddingStart = ta.getDimensionPixelSize(R.styleable.RealmRecyclerView_rvPaddingStart, -1);
+        int paddingTop = ta.getDimensionPixelSize(R.styleable.RealmRecyclerView_rvPaddingTop, -1);
+        int paddingEnd = ta.getDimensionPixelSize(R.styleable.RealmRecyclerView_rvPaddingEnd, -1);
+        int paddingBottom = ta.getDimensionPixelSize(R.styleable.RealmRecyclerView_rvPaddingBottom, -1);
+        // Specific padding values are more important than the overall padding value.
+        setRVPadding(paddingStart > -1 ? paddingStart : padding,
+                paddingTop > -1 ? paddingTop : padding,
+                paddingEnd > -1 ? paddingEnd : padding,
+                paddingBottom > -1 ? paddingBottom : padding);
     }
 
     private void updateEmptyContentContainerVisibility(RecyclerView.Adapter adapter) {
@@ -259,7 +282,7 @@ public class RealmRecyclerView extends FrameLayout {
 
     /**
      * Set whether to use the fast scroller bubble or not.
-     * <p/>
+     * <p>
      * If set to true, you need to have a class implement {@link BubbleTextProvider#getFastScrollBubbleText(int)} and
      * pass it to this {@link RealmRecyclerView} using {@link #setBubbleTextProvider(BubbleTextProvider)} so that the
      * fast scroller will know what text to put into the bubble.
@@ -289,8 +312,33 @@ public class RealmRecyclerView extends FrameLayout {
     }
 
     /**
-     * Get the actual RecyclerView which backs this {@link RealmRecyclerView}.
-     * @return Internal RecyclerView.
+     * Set the padding on the actual {@code RecyclerView} which backs this {@link RealmRecyclerView}.
+     * @param padding Padding in pixels.
+     */
+    @SuppressWarnings("unused")
+    public final void setRVPadding(int padding) {
+        setRVPadding(padding, padding, padding, padding);
+    }
+
+    /**
+     * Set the padding on the actual {@code RecyclerView} which backs this {@link RealmRecyclerView}.
+     * <p>
+     * If running on a device whose API level is < 17, {@code start} and {@code end} are used as the values for left and
+     * right, respectively.
+     * @param start  The start (or left) padding in pixels.
+     * @param top    The top padding in pixels.
+     * @param end    The end (or right) padding in pixels.
+     * @param bottom The bottom padding in pixels.
+     */
+    public final void setRVPadding(int start, int top, int end, int bottom) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
+            recyclerView.setPaddingRelative(start, top, end, bottom);
+        else recyclerView.setPadding(start, top, end, bottom);
+    }
+
+    /**
+     * Get the actual {@code RecyclerView} which backs this {@link RealmRecyclerView}.
+     * @return Internal {@code RecyclerView}.
      */
     @SuppressWarnings("unused")
     public final RecyclerView getRecyclerView() {
@@ -298,8 +346,8 @@ public class RealmRecyclerView extends FrameLayout {
     }
 
     /**
-     * Get the LinearLayoutManager attached to the RealmRecyclerView.
-     * @return LinearLayoutManager.
+     * Get the {@code LinearLayoutManager} attached to the {@link RealmRecyclerView}.
+     * @return {@code LinearLayoutManager}.
      */
     @SuppressWarnings("unused")
     public final LinearLayoutManager getLayoutManager() {

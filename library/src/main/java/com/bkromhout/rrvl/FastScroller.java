@@ -226,14 +226,14 @@ class FastScroller extends LinearLayout {
     private void setRecyclerViewPosition(float y) {
         if (recyclerView != null) {
             int itemCount = recyclerView.getAdapter().getItemCount();
-            float targetItemProportion;
+            float rawTargetItemProportion;
 
-            if (handle.getY() == 0) targetItemProportion = 0f;
-            else if (handle.getY() + handle.getHeight() >= height) targetItemProportion = 1f;
-            else targetItemProportion = y / ((float) height - (float) handle.getHeight());
+            if (handle.getY() == 0) rawTargetItemProportion = 0f;
+            else if (handle.getY() + handle.getHeight() > height) rawTargetItemProportion = 1f;
+            else rawTargetItemProportion = y / ((float) height - (float) handle.getHeight());
 
-            targetItemProportion *= computeMaxScrollProportion(recyclerView.computeVerticalScrollRange(),
-                    recyclerView.computeVerticalScrollExtent());
+            float targetItemProportion = rawTargetItemProportion * computeMaxScrollProportion(
+                    recyclerView.computeVerticalScrollRange(), recyclerView.computeVerticalScrollExtent());
 
             int targetPos = (int) getValueInRange(0, itemCount - 1, targetItemProportion * (float) itemCount);
             ((LinearLayoutManager) recyclerView.getLayoutManager()).scrollToPositionWithOffset(targetPos, 0);
