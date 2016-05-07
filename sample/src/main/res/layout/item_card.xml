@@ -4,7 +4,9 @@
                                     android:id="@+id/card"
                                     android:layout_width="match_parent"
                                     android:layout_height="56dp"
-                                    android:layout_margin="4dp"
+                                    android:layout_marginTop="8dp"
+                                    android:layout_marginStart="4dp"
+                                    android:layout_marginEnd="4dp"
                                     style="@style/CardView.Light">
 
     <RelativeLayout
