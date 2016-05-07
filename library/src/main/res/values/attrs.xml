@@ -19,9 +19,9 @@
              adapter override {@link RealmBasedRecyclerViewAdapter#getFastScrollBubbleText(int)}. -->
         <attr name="useFastScrollBubble" format="boolean"/>
 
-        <attr name="rvPaddingLeft" format="dimension"/>
+        <attr name="rvPaddingStart" format="dimension"/>
         <attr name="rvPaddingTop" format="dimension"/>
-        <attr name="rvPaddingRight" format="dimension"/>
+        <attr name="rvPaddingEnd" format="dimension"/>
         <attr name="rvPaddingBottom" format="dimension"/>
         <attr name="rvPadding" format="dimension"/>
     </declare-styleable>

@@ -111,14 +111,14 @@ public class RealmRecyclerView extends FrameLayout {
 
     private void initRVPadding(TypedArray ta) {
         int padding = ta.getDimensionPixelSize(R.styleable.RealmRecyclerView_rvPadding, 0);
-        int paddingLeft = ta.getDimensionPixelSize(R.styleable.RealmRecyclerView_rvPaddingLeft, -1);
+        int paddingStart = ta.getDimensionPixelSize(R.styleable.RealmRecyclerView_rvPaddingStart, -1);
         int paddingTop = ta.getDimensionPixelSize(R.styleable.RealmRecyclerView_rvPaddingTop, -1);
-        int paddingRight = ta.getDimensionPixelSize(R.styleable.RealmRecyclerView_rvPaddingRight, -1);
+        int paddingEnd = ta.getDimensionPixelSize(R.styleable.RealmRecyclerView_rvPaddingEnd, -1);
         int paddingBottom = ta.getDimensionPixelSize(R.styleable.RealmRecyclerView_rvPaddingBottom, -1);
         // Specific padding values are more important than the overall padding value.
-        setRVPadding(paddingLeft > -1 ? paddingLeft : padding,
+        setRVPadding(paddingStart > -1 ? paddingStart : padding,
                 paddingTop > -1 ? paddingTop : padding,
-                paddingRight > -1 ? paddingRight : padding,
+                paddingEnd > -1 ? paddingEnd : padding,
                 paddingBottom > -1 ? paddingBottom : padding);
     }
 
