@@ -1,6 +1,7 @@
 package com.bkromhout.rrvl;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -189,7 +190,7 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
 
     /**
      * Set the selected state of the item at {@code position}.
-     * <p/>
+     * <p>
      * This method will call notifyItemChanged(position) when it completes; it is up to extending class to check if the
      * position is selected when onBindViewHolder gets called again and react accordingly.
      * @param selected Whether or not the item is selected.
@@ -334,10 +335,100 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
      * multiple spaces.
      * @param dragging The ViewHolder item being dragged.
      * @param target   The ViewHolder item under the item being dragged.
+     * @return True if the viewHolder has been moved to the adapter position of target.
      */
     @Override
     public boolean onMove(RecyclerView.ViewHolder dragging, RecyclerView.ViewHolder target) {
         // Left for the user to implement.
+        return false;
+    }
+
+    /**
+     * Called when the ViewHolder swiped or dragged by the ItemTouchHelper is changed.
+     * <p>
+     * This is called after the framework's default behavior takes place; the default implementation does nothing.
+     * @param viewHolder  The new ViewHolder that is being swiped or dragged. Might be null if it is cleared.
+     * @param actionState One of {@code ItemTouchHelper.ACTION_STATE_IDLE}, {@code ItemTouchHelper.ACTION_STATE_SWIPE}
+     *                    or {@code ItemTouchHelper.ACTION_STATE_DRAG}.
+     */
+    @Override
+    public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+        // Left for the user to implement.
+    }
+
+    /**
+     * Called by the ItemTouchHelper when the user interaction with an element is over and it also completed its
+     * animation.
+     * <p>
+     * This is a good place to clear all changes on the View that was done in {@link
+     * #onSelectedChanged(RecyclerView.ViewHolder, int)}, {@link #onChildDraw(Canvas, RecyclerView,
+     * RecyclerView.ViewHolder, float, float, int, boolean)} or {@link #onChildDrawOver(Canvas, RecyclerView,
+     * RecyclerView.ViewHolder, float, float, int, boolean)}.
+     * <p>
+     * This is called after the framework's default behavior takes place; the default implementation does nothing.
+     * @param recyclerView The RecyclerView which is controlled by the ItemTouchHelper.
+     * @param viewHolder   The View that was interacted by the user.
+     */
+    @Override
+    public void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+        // Left for the user to implement.
+    }
+
+    /**
+     * Called by ItemTouchHelper on RecyclerView's onDraw callback.
+     * <p>
+     * If you would like to customize how your View's respond to user interactions, override this.
+     * <p>
+     * By default, this implementation does nothing and returns {@code false} to indicate we should use the framework's
+     * default behavior.
+     * @param c                 The canvas which RecyclerView is drawing its children
+     * @param recyclerView      The RecyclerView to which ItemTouchHelper is attached to
+     * @param viewHolder        The ViewHolder which is being interacted by the User or it was interacted and simply
+     *                          animating to its original position
+     * @param dX                The amount of horizontal displacement caused by user's action
+     * @param dY                The amount of vertical displacement caused by user's action
+     * @param actionState       The type of interaction on the View. Is either {@code ItemTouchHelper.ACTION_STATE_DRAG}
+     *                          or {@code ItemTouchHelper.ACTION_STATE_SWIPE}.
+     * @param isCurrentlyActive True if this view is currently being controlled by the user or false it is simply
+     *                          animating back to its original state.
+     * @return False if the framework's default behavior should be taken upon the completion of this method, true if the
+     * framework's behavior should be skipped.
+     * @see android.support.v7.widget.helper.ItemTouchHelper.Callback#onChildDraw(Canvas, RecyclerView,
+     * RecyclerView.ViewHolder, float, float, int, boolean)
+     */
+    @Override
+    public boolean onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX,
+                               float dY, int actionState, boolean isCurrentlyActive) {
+        // Use default framework behavior.
+        return false;
+    }
+
+    /**
+     * Called by ItemTouchHelper on RecyclerView's onDraw callback.
+     * <p>
+     * If you would like to customize how your View's respond to user interactions, override this.
+     * <p>
+     * By default, this implementation does nothing and returns {@code false} to indicate we should use the framework's
+     * default behavior.
+     * @param c                 The canvas which RecyclerView is drawing its children
+     * @param recyclerView      The RecyclerView to which ItemTouchHelper is attached to
+     * @param viewHolder        The ViewHolder which is being interacted by the User or it was interacted and simply
+     *                          animating to its original position
+     * @param dX                The amount of horizontal displacement caused by user's action
+     * @param dY                The amount of vertical displacement caused by user's action
+     * @param actionState       The type of interaction on the View. Is either {@code ItemTouchHelper.ACTION_STATE_DRAG}
+     *                          or {@code ItemTouchHelper.ACTION_STATE_SWIPE}.
+     * @param isCurrentlyActive True if this view is currently being controlled by the user or false it is simply
+     *                          animating back to its original state.
+     * @return False if the framework's default behavior should be taken upon the completion of this method, true if the
+     * framework's behavior should be skipped.
+     * @see android.support.v7.widget.helper.ItemTouchHelper.Callback#onChildDrawOver(Canvas, RecyclerView,
+     * RecyclerView.ViewHolder, float, float, int, boolean)
+     */
+    @Override
+    public boolean onChildDrawOver(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX,
+                                   float dY, int actionState, boolean isCurrentlyActive) {
+        // Use default framework behavior.
         return false;
     }
 
