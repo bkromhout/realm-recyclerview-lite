@@ -11,6 +11,7 @@
             android:id="@+id/recycler"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            app:rvPadding="4dp"
             app:dragAndDrop="true"
             app:fastScroll="true"
             app:autoHideFastScrollHandle="true"

@@ -18,5 +18,11 @@
         <!-- Whether to use the fast scroller's section bubble. False by default. If set to true, be sure to have your
              adapter override {@link RealmBasedRecyclerViewAdapter#getFastScrollBubbleText(int)}. -->
         <attr name="useFastScrollBubble" format="boolean"/>
+
+        <attr name="rvPaddingLeft" format="dimension"/>
+        <attr name="rvPaddingTop" format="dimension"/>
+        <attr name="rvPaddingRight" format="dimension"/>
+        <attr name="rvPaddingBottom" format="dimension"/>
+        <attr name="rvPadding" format="dimension"/>
     </declare-styleable>
 </resources>
