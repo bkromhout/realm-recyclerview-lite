@@ -1,5 +1,6 @@
 package com.bkromhout.rrvl;
 
+import android.graphics.Canvas;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 
@@ -10,6 +11,16 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
     interface Listener {
         boolean onMove(RecyclerView.ViewHolder dragging, RecyclerView.ViewHolder target);
+
+        void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState);
+
+        void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder);
+
+        boolean onChildDrawOver(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX,
+                                float dY, int actionState, boolean isCurrentlyActive);
+
+        boolean onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY,
+                            int actionState, boolean isCurrentlyActive);
     }
 
     private boolean dragAndDrop;
@@ -60,5 +71,33 @@ class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
     @Override
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
         // Never called.
+    }
+
+    @Override
+    public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+        super.onSelectedChanged(viewHolder, actionState);
+        listener.onSelectedChanged(viewHolder, actionState);
+    }
+
+    @Override
+    public void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+        super.clearView(recyclerView, viewHolder);
+        listener.clearView(recyclerView, viewHolder);
+    }
+
+    @Override
+    public void onChildDrawOver(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX,
+                                float dY, int actionState, boolean isCurrentlyActive) {
+        // Either let listener handle it or call super.
+        if (!listener.onChildDrawOver(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive))
+            super.onChildDrawOver(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+    }
+
+    @Override
+    public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY,
+                            int actionState, boolean isCurrentlyActive) {
+        // Either let listener handle it or call super.
+        if (!listener.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive))
+            super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
     }
 }
