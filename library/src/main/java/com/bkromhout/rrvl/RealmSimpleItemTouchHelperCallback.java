@@ -16,11 +16,11 @@ class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
 
         void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder);
 
-        boolean onChildDrawOver(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX,
-                                float dY, int actionState, boolean isCurrentlyActive);
-
         boolean onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY,
                             int actionState, boolean isCurrentlyActive);
+
+        boolean onChildDrawOver(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX,
+                                float dY, int actionState, boolean isCurrentlyActive);
     }
 
     private boolean dragAndDrop;
@@ -86,18 +86,18 @@ class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
     }
 
     @Override
-    public void onChildDrawOver(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX,
-                                float dY, int actionState, boolean isCurrentlyActive) {
-        // Either let listener handle it or call super.
-        if (!listener.onChildDrawOver(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive))
-            super.onChildDrawOver(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-    }
-
-    @Override
     public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY,
                             int actionState, boolean isCurrentlyActive) {
         // Either let listener handle it or call super.
         if (!listener.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive))
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+    }
+
+    @Override
+    public void onChildDrawOver(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX,
+                                float dY, int actionState, boolean isCurrentlyActive) {
+        // Either let listener handle it or call super.
+        if (!listener.onChildDrawOver(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive))
+            super.onChildDrawOver(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
     }
 }

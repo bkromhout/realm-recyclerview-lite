@@ -393,12 +393,12 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
      *                          animating back to its original state.
      * @return False if the framework's default behavior should be taken upon the completion of this method, true if the
      * framework's behavior should be skipped.
-     * @see android.support.v7.widget.helper.ItemTouchHelper.Callback#onChildDrawOver(Canvas, RecyclerView,
+     * @see android.support.v7.widget.helper.ItemTouchHelper.Callback#onChildDraw(Canvas, RecyclerView,
      * RecyclerView.ViewHolder, float, float, int, boolean)
      */
     @Override
-    public boolean onChildDrawOver(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX,
-                                   float dY, int actionState, boolean isCurrentlyActive) {
+    public boolean onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX,
+                               float dY, int actionState, boolean isCurrentlyActive) {
         // Use default framework behavior.
         return false;
     }
@@ -422,12 +422,12 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
      *                          animating back to its original state.
      * @return False if the framework's default behavior should be taken upon the completion of this method, true if the
      * framework's behavior should be skipped.
-     * @see android.support.v7.widget.helper.ItemTouchHelper.Callback#onChildDraw(Canvas, RecyclerView,
+     * @see android.support.v7.widget.helper.ItemTouchHelper.Callback#onChildDrawOver(Canvas, RecyclerView,
      * RecyclerView.ViewHolder, float, float, int, boolean)
      */
     @Override
-    public boolean onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX,
-                               float dY, int actionState, boolean isCurrentlyActive) {
+    public boolean onChildDrawOver(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX,
+                                   float dY, int actionState, boolean isCurrentlyActive) {
         // Use default framework behavior.
         return false;
     }

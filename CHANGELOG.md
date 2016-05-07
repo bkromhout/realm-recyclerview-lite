@@ -1,5 +1,12 @@
 # realm-recyclerview-lite Changelog
 
+## 2.0.2
+* Exposed some additional `ItemTouchHelper.Callback` methods through the `RealmRecyclerViewAdapter`:
+    * `onSelectedChanged`
+    * `clearView`
+    * `onChildDraw`
+    * `onChildDrawOver`
+
 ## 2.0.1
 * System scrollbars are now actually drawn if the fast scroller is disabled.
 * Add attributes and methods to `RealmRecyclerView` to set padding for the real `RecyclerView` which backs it. See the [Padding](https://github.com/bkromhout/realm-recyclerview-lite#padding) section of the README for more info
