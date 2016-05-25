@@ -1,5 +1,8 @@
 # realm-recyclerview-lite Changelog
 
+## 2.0.5
+* Removed `final` modifier from `saveInstanceState` and `restoreInstanceState` methods on `RealmRecyclerViewAdapter`
+
 ## 2.0.4
 * Tested with Realm 1.0.0 and confirmed working
 

@@ -190,7 +190,7 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
 
     /**
      * Set the selected state of the item at {@code position}.
-     * <p>
+     * <p/>
      * This method will call notifyItemChanged(position) when it completes; it is up to extending class to check if the
      * position is selected when onBindViewHolder gets called again and react accordingly.
      * @param selected Whether or not the item is selected.
@@ -345,7 +345,7 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
 
     /**
      * Called when the ViewHolder swiped or dragged by the ItemTouchHelper is changed.
-     * <p>
+     * <p/>
      * This is called after the framework's default behavior takes place; the default implementation does nothing.
      * @param viewHolder  The new ViewHolder that is being swiped or dragged. Might be null if it is cleared.
      * @param actionState One of {@code ItemTouchHelper.ACTION_STATE_IDLE}, {@code ItemTouchHelper.ACTION_STATE_SWIPE}
@@ -359,12 +359,12 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
     /**
      * Called by the ItemTouchHelper when the user interaction with an element is over and it also completed its
      * animation.
-     * <p>
+     * <p/>
      * This is a good place to clear all changes on the View that was done in {@link
      * #onSelectedChanged(RecyclerView.ViewHolder, int)}, {@link #onChildDraw(Canvas, RecyclerView,
      * RecyclerView.ViewHolder, float, float, int, boolean)} or {@link #onChildDrawOver(Canvas, RecyclerView,
      * RecyclerView.ViewHolder, float, float, int, boolean)}.
-     * <p>
+     * <p/>
      * This is called after the framework's default behavior takes place; the default implementation does nothing.
      * @param recyclerView The RecyclerView which is controlled by the ItemTouchHelper.
      * @param viewHolder   The View that was interacted by the user.
@@ -376,9 +376,9 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
 
     /**
      * Called by ItemTouchHelper on RecyclerView's onDraw callback.
-     * <p>
+     * <p/>
      * If you would like to customize how your View's respond to user interactions, override this.
-     * <p>
+     * <p/>
      * By default, this implementation does nothing and returns {@code false} to indicate we should use the framework's
      * default behavior.
      * @param c                 The canvas which RecyclerView is drawing its children
@@ -405,9 +405,9 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
 
     /**
      * Called by ItemTouchHelper on RecyclerView's onDraw callback.
-     * <p>
+     * <p/>
      * If you would like to customize how your View's respond to user interactions, override this.
-     * <p>
+     * <p/>
      * By default, this implementation does nothing and returns {@code false} to indicate we should use the framework's
      * default behavior.
      * @param c                 The canvas which RecyclerView is drawing its children
@@ -435,10 +435,12 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
     /**
      * Save state of this adapter instance in the given Bundle. An example of such data would be the list of selected
      * indices.
+     * <p/>
+     * If you override this method, be sure to call {@code super()}.
      * @param out Bundle to save state to.
      */
     @SuppressWarnings("unused")
-    public final void saveInstanceState(Bundle out) {
+    public void saveInstanceState(Bundle out) {
         if (out != null) {
             out.putIntegerArrayList(SEL_POSITIONS_KEY, new ArrayList<>(selectedPositions));
         }
@@ -446,11 +448,13 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
 
     /**
      * Restore state from the given Bundle.
+     * <p/>
+     * If you override this method, be sure to call {@code super()}.
      * @param in Bundle to try and restore state from.
      * @see #saveInstanceState(Bundle)
      */
     @SuppressWarnings("unused")
-    public final void restoreInstanceState(Bundle in) {
+    public void restoreInstanceState(Bundle in) {
         if (in != null) {
             ArrayList<Integer> temp = in.getIntegerArrayList(SEL_POSITIONS_KEY);
             if (temp == null) selectedPositions = new HashSet<>();
