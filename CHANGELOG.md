@@ -1,5 +1,11 @@
 # realm-recyclerview-lite Changelog
 
+## 2.0.4
+* Tested with Realm 1.0.0 and confirmed working
+
+## 2.0.3
+* Don't clip the actual `RecyclerView` to padding
+
 ## 2.0.2
 * Exposed some additional `ItemTouchHelper.Callback` methods through the `RealmRecyclerViewAdapter`:
     * `onSelectedChanged`
