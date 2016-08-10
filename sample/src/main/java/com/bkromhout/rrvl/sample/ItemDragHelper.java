@@ -140,7 +140,7 @@ public class ItemDragHelper {
         if (p2 <= p1) throw new IllegalArgumentException("item2 was before or at the same position as item1.");
 
         // Calculate middle.
-        Long pos = p1 + p2 / 2L;
+        Long pos = (p1 + p2) / 2L;
 
         // Make sure there isn't an item in the calculated position. If there is, return null.
         return realm.where(Item.class).equalTo("position", pos).findFirst() == null ? pos : null;
