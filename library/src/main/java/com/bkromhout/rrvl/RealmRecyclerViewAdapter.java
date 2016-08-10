@@ -157,6 +157,7 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
      * not change you might consider using the automaticUpdate feature.
      * @param queryResults the new RealmResults coming from the new query.
      */
+    @SuppressWarnings("WeakerAccess")
     public void updateRealmResults(RealmResults<T> queryResults) {
         if (changeListener != null && realmResults != null) realmResults.removeChangeListener(changeListener);
 
@@ -306,6 +307,7 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
     /**
      * Clears any selections that may exist.
      */
+    @SuppressWarnings("WeakerAccess")
     public final void clearSelections() {
         // We definitely don't want to do any redrawing if we don't have anything selected!
         if (selectedPositions.isEmpty()) return;
@@ -322,17 +324,18 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
     /**
      * Calls {@code notifyItemChanged()} on each of the currently selected positions.
      */
+    @SuppressWarnings("WeakerAccess")
     public void notifySelectedItemsChanged() {
         for (Integer i : selectedPositions) notifyItemChanged(i);
     }
 
     /**
      * Called when an item has been moved whilst dragging. There are two things that overriding classes must
-     * consider:<br/>-This is called EVERY time an item "moves", not just when it is "dropped".<br/>-An item
+     * consider:<ul><li>This is called EVERY time an item "moves", not just when it is "dropped".</li><li>An item
      * <i>technically</i> "moves" each time it is dragged over another item (as in, when the two items should appear to
      * swap); however, if the item is being dragged fast enough Android tends to batch together what would otherwise be
      * multiple calls to this method (if the drag occurred slower) into a single call, meaning that item may have moved
-     * multiple spaces.
+     * multiple spaces.</li></ul>
      * @param dragging The ViewHolder item being dragged.
      * @param target   The ViewHolder item under the item being dragged.
      * @return True if the viewHolder has been moved to the adapter position of target.
@@ -341,6 +344,18 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
     public boolean onMove(RecyclerView.ViewHolder dragging, RecyclerView.ViewHolder target) {
         // Left for the user to implement.
         return false;
+    }
+
+    /**
+     * Called when an item has been swiped away.
+     * @param swiped    The ViewHolder item which was swiped.
+     * @param direction The direction to which the item was swiped. Will be one of {@link
+     *                  android.support.v7.widget.helper.ItemTouchHelper#START ItemTouchHelper.START} or {@link
+     *                  android.support.v7.widget.helper.ItemTouchHelper#END ItemTouchHelper.END}.
+     */
+    @Override
+    public void onSwiped(RecyclerView.ViewHolder swiped, int direction) {
+        // Left for the user to implement.
     }
 
     /**
