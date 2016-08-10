@@ -7,6 +7,15 @@
               android:paddingEnd="8dp">
 
     <CheckBox
+            android:id="@+id/swipe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical"
+            android:text="@string/swiping"
+            style="@style/TextAppearance.AppCompat.Medium"/>
+
+    <CheckBox
             android:id="@+id/drag_and_drop"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

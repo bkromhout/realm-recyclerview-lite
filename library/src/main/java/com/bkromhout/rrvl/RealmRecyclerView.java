@@ -22,6 +22,7 @@ public class RealmRecyclerView extends FrameLayout {
 
     // Attributes.
     private int emptyViewId;
+    private boolean swipe;
     private boolean dragAndDrop;
     private boolean fastScrollEnabled;
 
@@ -55,8 +56,8 @@ public class RealmRecyclerView extends FrameLayout {
         // Read attributes and set things up.
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.RealmRecyclerView);
         emptyViewId = ta.getResourceId(R.styleable.RealmRecyclerView_emptyLayoutId, 0);
-        // Drag and drop.
-        initDragAndDrop(ta);
+        // Touch helper.
+        initTouchHelper(ta);
         // Fast scroll.
         initFastScroller(ta);
         // RecyclerView padding.
@@ -92,9 +93,10 @@ public class RealmRecyclerView extends FrameLayout {
         recyclerView.setHasFixedSize(true);
     }
 
-    private void initDragAndDrop(TypedArray ta) {
+    private void initTouchHelper(TypedArray ta) {
+        swipe = ta.getBoolean(R.styleable.RealmRecyclerView_swipe, false);
         dragAndDrop = ta.getBoolean(R.styleable.RealmRecyclerView_dragAndDrop, false);
-        touchHelperCallback = new RealmSimpleItemTouchHelperCallback(dragAndDrop,
+        touchHelperCallback = new RealmSimpleItemTouchHelperCallback(swipe, dragAndDrop,
                 ta.getBoolean(R.styleable.RealmRecyclerView_longClickTriggersDrag, false));
         touchHelper = new ItemTouchHelper(touchHelperCallback);
         touchHelper.attachToRecyclerView(recyclerView);
@@ -182,6 +184,23 @@ public class RealmRecyclerView extends FrameLayout {
             );
         }
         updateEmptyContentContainerVisibility(adapter);
+    }
+
+    /**
+     * Get whether swipe is enabled.
+     * @return Whether swipe is enabled or not.
+     */
+    public final boolean getSwipe() {
+        return swipe;
+    }
+
+    /**
+     * Enable/Disable swipe.
+     * @param enabled Whether to allow swipe.
+     */
+    public final void setSwipe(boolean enabled) {
+        this.swipe = enabled;
+        touchHelperCallback.setSwipe(enabled);
     }
 
     /**

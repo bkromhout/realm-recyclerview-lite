@@ -1,6 +1,5 @@
 package com.bkromhout.rrvl.sample;
 
-import com.google.common.math.LongMath;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.Sort;
@@ -133,15 +132,15 @@ public class ItemDragHelper {
         if (item1 == null && item2 == null) throw new IllegalArgumentException("Both items are null.");
 
         // Handle acceptable nulls.
-        if (item1 == null) return LongMath.checkedSubtract(item2.position, Item.GAP);
-        if (item2 == null) return LongMath.checkedAdd(item1.position, Item.GAP);
+        if (item1 == null) return item2.position - Item.GAP;
+        if (item2 == null) return item1.position + Item.GAP;
 
         // Get positions, make sure that item2 doesn't precede item1 and isn't in the same position as item1.
         Long p1 = item1.position, p2 = item2.position;
         if (p2 <= p1) throw new IllegalArgumentException("item2 was before or at the same position as item1.");
 
         // Calculate middle.
-        Long pos = LongMath.mean(p1, p2);
+        Long pos = (p1 + p2) / 2L;
 
         // Make sure there isn't an item in the calculated position. If there is, return null.
         return realm.where(Item.class).equalTo("position", pos).findFirst() == null ? pos : null;

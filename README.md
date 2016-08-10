@@ -10,8 +10,10 @@ Please be sure to take a moment to look at the [Origin][Origin] section. You'll 
 #### Table of Contents
 * [Installation](#installation)  
 * [Basic Usage](#usage)
+* [Swiping](#swiping)
 * [Drag and Drop](#drag-and-drop)  
     * [Long Click as the Drag Trigger](#long-click-drag-trigger)  
+* [Advanced Swiping and Drag and Drop](#adv-s-and-dd)
 * [Multi-Select](#multi-select)  
 * [Fast Scrolling](#fast-scrolling)  
     * [Handle State Notifications](#handle-state-notifications)  
@@ -38,7 +40,7 @@ dependencies {
     }
 }
 ```
-Please note that at this time, realm-recyclerview-lite has been tested and is verified to work with **Realm 0.90.0**. Don't be afraid to try a newer version of Realm, just be sure to open an issue if you run into problems.
+Please note that at this time, realm-recyclerview-lite has been tested and is verified to work with **Realm 1.1.1**. Don't be afraid to try a newer version of Realm, just be sure to open an issue if you run into problems.
 
 **realm-recyclerview-lite is compatible with Android API Levels >= 11.**
 
@@ -138,6 +140,50 @@ A couple more points of note:
 * `RealmRecyclerView` is *not* actually a `RecyclerView` subclass, it's a `FrameLayout`. If you need access to the real `RecyclerView` or `LinearLayoutManager` instances for some reason, you can use the `getRecyclerView` and `getLayoutManager` methods
 * When you're done using an adapter (such as when an Activity or Fragment is being destroyed), be sure to call its `close` method to prevent any possible Realm instance leaks
 
+<a name="swiping"/>
+## Swiping
+The ability for users to swipe items opens up many possibilities. Enabling swiping can be done one of two ways:
+
+* In our layout, with the `swipe` attribute:
+```xml
+<com.bkromhout.rrvl.RealmRecyclerView
+        android:id="@+id/recycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:swipe="true"/>
+```
+* Or programmatically, with the `RealmRecyclerView.setSwipe` method:  
+```java
+recyclerView.setSwipe(true);
+```
+
+Next, we need to override the `onSwiped` method in our adapter, as well as add a single line to our `onBindViewHolder` method.
+These are the relevant parts from the sample app's [`ItemAdapter` class][ItemAdapter Class]:
+```java
+@Override
+public void onBindViewHolder(final ItemVH holder, int position) {
+    Item item = realmResults.get(position);
+    holder.name.setText(item.name);
+    // We set the unique ID as the tag on a view so that we will be able to get it
+    // in the onSwiped() method.
+    holder.content.setTag(item.uniqueId);
+}
+
+@Override
+public void onSwiped(RecyclerView.ViewHolder swiped, int direction) {
+    // Get the unique ID of the item.
+    long swipedId = (long) ((ItemVH) swiped).content.getTag()
+
+    // Remove the item from Realm.
+    try (Realm realm = Realm.getDefaultInstance()) {
+        Item item = realm.where(Item.class).equalTo("uniqueId", swipedId).findFirst();
+        realm.beginTransaction();
+        item.deleteFromRealm();
+        realm.commitTransaction();
+    }
+}
+```
+
 <a name="drag-and-drop"/>
 ## Drag and Drop
 Drag and drop can be a tricky feature to implement in the first place since your data model usually must have some field which keeps track of a position. Combine this with Realm's auto-updating nature, and you can quickly get lost in a sea of troubles. Luckily, I've done most of the work for you 😉.
@@ -159,7 +205,7 @@ recyclerView.setDragAndDrop(true);
 ```
 
 Next, some work needs to be done in our adapter. For drag and drop to work, we need to override the `onMove` method. We also need to add a bit more to our overridden `onBindViewHolder` method so that our items' drag handle views actually initiate drags when touched.  
-These are the full methods from the sample app's [`ItemAdapter` class][ItemAdapter Class]:
+These are the relevant parts from the sample app's [`ItemAdapter` class][ItemAdapter Class]:
 ```java
 @Override
 public void onBindViewHolder(final ItemVH holder, int position) {
@@ -232,6 +278,16 @@ recyclerView.setLongClickTriggersDrag(true);
 Once enabled, long clicking an item will automatically initiate a drag without you needing to call `startDragging`. You can still call it yourself in response to some other interaction if you'd like though.
 
 Note that you *do* still have to implement the `onMove` method.
+
+<a name="adv-s-and-dd"/>
+## Advanced Swiping and Drag and Drop
+While I don't have examples of them here, you can achieve more advanced functionality for swipe and drag-and-drop by overriding and implementing the following methods in your adapter classes:
+* `onSelectedChanged`
+* `clearView`
+* `onChildDraw`
+* `onChildDrawOver`
+
+Similar to `onSwiped` and `onMove`, these correspond directly to the methods available in the [`ItemTouchHelper.Callback` Class][ItemTouchHelper.Callback Class] provided by the Android support libraries.
 
 <a name="multi-select"/>
 ## Multi-Select
@@ -373,6 +429,7 @@ Things to keep in mind:
 [Item Class]: sample/src/main/java/com/bkromhout/rrvl/sample/Item.java
 [ItemAdapter Class]: sample/src/main/java/com/bkromhout/rrvl/sample/ItemAdapter.java
 [ItemDragHelper Class]: sample/src/main/java/com/bkromhout/rrvl/sample/ItemDragHelper.java
+[ItemTouchHelper.Callback Class]: https://developer.android.com/reference/android/support/v7/widget/helper/ItemTouchHelper.Callback.html
 [UIDModel Class]: library/src/main/java/com/bkromhout/rrvl/UIDModel.java
 [BubbleTextProvider Class]: library/src/main/java/com/bkromhout/rrvl/BubbleTextProvider.java
 [FastScrollHandleStateListener Class]: library/src/main/java/com/bkromhout/rrvl/FastScrollHandleStateListener.java

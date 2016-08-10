@@ -1,5 +1,8 @@
 # realm-recyclerview-lite Changelog
 
+## 2.1.0
+* Implemented swiping functionality, see the README for details
+
 ## 2.0.5
 * Removed `final` modifier from `saveInstanceState` and `restoreInstanceState` methods on `RealmRecyclerViewAdapter`
 

@@ -3,6 +3,8 @@
     <declare-styleable name="RealmRecyclerView">
         <!-- Layout resource ID to inflate and use as an empty view. None by default. -->
         <attr name="emptyLayoutId" format="reference"/>
+        <!-- Whether to enable swipe or not. False by default -->
+        <attr name="swipe" format="boolean"/>
         <!-- Whether to enable drag and drop or not. False by default. -->
         <attr name="dragAndDrop" format="boolean"/>
         <!-- Whether long clicking a view will cause a drag to be started. False by default. -->
