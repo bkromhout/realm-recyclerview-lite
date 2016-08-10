@@ -3,6 +3,7 @@ package com.bkromhout.rrvl;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.os.Bundle;
+import android.support.annotation.CallSuper;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import difflib.Delta;
@@ -27,6 +28,7 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
 
     private RealmRecyclerView rrv = null;
     private RealmChangeListener<RealmResults<T>> changeListener;
+    private boolean shouldNotifyOfSingleItemMoves = true;
 
     protected LayoutInflater inflater;
     protected RealmResults<T> realmResults;
@@ -78,20 +80,14 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
 
                     // If the notification was for a different object/table (we'll have no deltas), don't do anything.
                     if (!deltas.isEmpty()) {
-                        /* See https://github.com/bkromhout/realm-recyclerview-lite/issues/4#issuecomment-210951358 for
-                        an explanation as to why this remains here. */
-                        // Try to be smarter here and detect cases where an item has simply moved.
-                        /*if (deltas.size() == 2 && areDeltasFromMove(deltas.get(0), deltas.get(1))) {
-                            if (deltas.get(0).getType() == Delta.TYPE.DELETE) {
-                                notifyItemMoved(deltas.get(0).getOriginal().getPosition(),
-                                        deltas.get(1).getRevised().getPosition());
-                            } else {
-                                notifyItemMoved(deltas.get(1).getOriginal().getPosition(),
-                                        deltas.get(0).getRevised().getPosition());
-                            }
-                        } else {*/
-
-                        if (!(deltas.size() == 2 && areDeltasFromMove(deltas.get(0), deltas.get(1)))) {
+                        /*
+                         * When we know we're currently swiping or dragging, we do a few more checks before calling the
+                         * notify methods, because in those cases the real RecyclerView handles many animations without
+                         * us needing to tell it what to do, and notifying it on top of that messes things up.
+                         * Specifically, we don't explicitly notify it of single item moves.
+                         */
+                        boolean singleItemMoved = deltas.size() == 2 && areDeltasFromMove(deltas.get(0), deltas.get(1));
+                        if (!singleItemMoved) {
                             // Loop through deltas backwards and send notifications for them.
                             for (int i = deltas.size() - 1; i >= 0; i--) {
                                 Delta d = deltas.get(i);
@@ -103,6 +99,11 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
                                     notifyItemRangeChanged(d.getRevised().getPosition(), d.getRevised().size());
                                 }
                             }
+                        } else if (shouldNotifyOfSingleItemMoves) {
+                            // Notify that a single item moved.
+                            Delta insert = deltas.get(0).getType() == Delta.TYPE.INSERT ? deltas.get(0) : deltas.get(1);
+                            Delta delete = deltas.get(0).getType() == Delta.TYPE.DELETE ? deltas.get(0) : deltas.get(1);
+                            notifyItemMoved(delete.getOriginal().getPosition(), insert.getRevised().getPosition());
                         }
                     }
                 } else {
@@ -361,14 +362,16 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
     /**
      * Called when the ViewHolder swiped or dragged by the ItemTouchHelper is changed.
      * <p/>
-     * This is called after the framework's default behavior takes place; the default implementation does nothing.
+     * This is called after the framework's default behavior takes place. Call super first if you override this method.
      * @param viewHolder  The new ViewHolder that is being swiped or dragged. Might be null if it is cleared.
      * @param actionState One of {@code ItemTouchHelper.ACTION_STATE_IDLE}, {@code ItemTouchHelper.ACTION_STATE_SWIPE}
      *                    or {@code ItemTouchHelper.ACTION_STATE_DRAG}.
      */
     @Override
+    @CallSuper
     public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
-        // Left for the user to implement.
+        // We don't want to notify for single item moves when dragging or swiping, it's taken care of already.
+        shouldNotifyOfSingleItemMoves = false;
     }
 
     /**
@@ -380,13 +383,15 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
      * RecyclerView.ViewHolder, float, float, int, boolean)} or {@link #onChildDrawOver(Canvas, RecyclerView,
      * RecyclerView.ViewHolder, float, float, int, boolean)}.
      * <p/>
-     * This is called after the framework's default behavior takes place; the default implementation does nothing.
+     * This is called after the framework's default behavior takes place. Call super first if you override this method.
      * @param recyclerView The RecyclerView which is controlled by the ItemTouchHelper.
      * @param viewHolder   The View that was interacted by the user.
      */
     @Override
+    @CallSuper
     public void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-        // Left for the user to implement.
+        // Start notifying for everything again.
+        shouldNotifyOfSingleItemMoves = true;
     }
 
     /**

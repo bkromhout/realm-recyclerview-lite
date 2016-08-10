@@ -1,5 +1,8 @@
 # realm-recyclerview-lite Changelog
 
+## 2.1.1
+* Better logic for notifying the `RecyclerView` about single item moves
+
 ## 2.1.0
 * Implemented swiping functionality, see the README for details
 
