@@ -1,5 +1,8 @@
 # realm-recyclerview-lite Changelog
 
+## 2.1.2
+* Make "better logic" from 2.1.1 a bit less squirrely 🐿
+
 ## 2.1.1
 * Better logic for notifying the `RecyclerView` about single item moves
 
