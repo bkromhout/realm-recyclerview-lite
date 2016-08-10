@@ -3,6 +3,7 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="options">Options</string>
+    <string name="swiping">Swiping</string>
     <string name="drag_and_drop">Drag and Drop</string>
     <string name="long_click_triggers_drag">Long Click Triggers Drag</string>
     <string name="fast_scroll">Fast Scroll</string>

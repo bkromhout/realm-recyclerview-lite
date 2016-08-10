@@ -184,6 +184,7 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
 
     private void showOptionsDialog() {
         View content = LayoutInflater.from(this).inflate(R.layout.options_dialog, null);
+        final CheckBox swiping = ButterKnife.findById(content, R.id.swipe);
         final CheckBox dragAndDrop = ButterKnife.findById(content, R.id.drag_and_drop);
         final CheckBox longClickTriggersDrag = ButterKnife.findById(content, R.id.long_click_triggers_drag);
         final CheckBox fastScroll = ButterKnife.findById(content, R.id.fast_scroll);
@@ -192,6 +193,7 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
         final CheckBox logHandleEvents = ButterKnife.findById(content, R.id.log_handle_events);
         final CheckBox useBubble = ButterKnife.findById(content, R.id.use_bubble);
 
+        swiping.setChecked(recyclerView.getSwipe());
         dragAndDrop.setChecked(recyclerView.getDragAndDrop());
         longClickTriggersDrag.setChecked(recyclerView.getLongClickTriggersDrag());
         fastScroll.setChecked(recyclerView.getFastScroll());
@@ -207,6 +209,7 @@ public class MainActivity extends AppCompatActivity implements FastScrollHandleS
                 .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        recyclerView.setSwipe(swiping.isChecked());
                         recyclerView.setDragAndDrop(dragAndDrop.isChecked());
                         recyclerView.setLongClickTriggersDrag(longClickTriggersDrag.isChecked());
                         recyclerView.setFastScroll(fastScroll.isChecked());

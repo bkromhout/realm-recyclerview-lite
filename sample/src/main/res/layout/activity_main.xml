@@ -15,6 +15,7 @@
             app:rvPaddingEnd="4dp"
             app:rvPaddingBottom="8dp"
             app:dragAndDrop="true"
+            app:swipe="true"
             app:fastScroll="true"
             app:autoHideFastScrollHandle="true"
             app:handleAutoHideDelay="1000"

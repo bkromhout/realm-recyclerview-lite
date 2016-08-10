@@ -81,6 +81,20 @@ public class ItemAdapter extends RealmRecyclerViewAdapter<Item, RecyclerView.Vie
     }
 
     @Override
+    public void onSwiped(RecyclerView.ViewHolder swiped, int direction) {
+        // Get the unique ID of the item.
+        long swipedId = (long) ((ItemVH) swiped).content.getTag();
+
+        // Remove the item from Realm.
+        try (Realm realm = Realm.getDefaultInstance()) {
+            Item item = realm.where(Item.class).equalTo("uniqueId", swipedId).findFirst();
+            realm.beginTransaction();
+            item.deleteFromRealm();
+            realm.commitTransaction();
+        }
+    }
+
+    @Override
     public boolean onMove(RecyclerView.ViewHolder dragging, RecyclerView.ViewHolder target) {
         // Get positions of items in adapter.
         int draggingPos = dragging.getAdapterPosition();
