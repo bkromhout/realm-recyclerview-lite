@@ -12,6 +12,8 @@ class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
     interface Listener {
         boolean onMove(RecyclerView.ViewHolder dragging, RecyclerView.ViewHolder target);
 
+        void onSwiped(RecyclerView.ViewHolder swiped, int direction);
+
         void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState);
 
         void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder);
@@ -23,13 +25,19 @@ class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
                                 float dY, int actionState, boolean isCurrentlyActive);
     }
 
+    private boolean swipe;
     private boolean dragAndDrop;
     private boolean longClickTriggersDrag;
     private Listener listener;
 
-    RealmSimpleItemTouchHelperCallback(boolean dragAndDrop, boolean longClickTriggersDrag) {
+    RealmSimpleItemTouchHelperCallback(boolean swipe, boolean dragAndDrop, boolean longClickTriggersDrag) {
+        this.swipe = swipe;
         this.dragAndDrop = dragAndDrop;
         this.longClickTriggersDrag = longClickTriggersDrag;
+    }
+
+    void setSwipe(boolean enabled) {
+        this.swipe = enabled;
     }
 
     void setDragAndDrop(boolean enabled) {
@@ -55,12 +63,14 @@ class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
 
     @Override
     public boolean isItemViewSwipeEnabled() {
-        return false;
+        return swipe;
     }
 
     @Override
     public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-        return makeMovementFlags(dragAndDrop ? (ItemTouchHelper.UP | ItemTouchHelper.DOWN) : 0, 0);
+        int dragFlags = dragAndDrop ? (ItemTouchHelper.UP | ItemTouchHelper.DOWN) : 0;
+        int swipeFlags = swipe ? (ItemTouchHelper.START | ItemTouchHelper.END) : 0;
+        return makeMovementFlags(dragFlags, swipeFlags);
     }
 
     @Override
@@ -70,7 +80,7 @@ class RealmSimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
 
     @Override
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-        // Never called.
+        listener.onSwiped(viewHolder, direction);
     }
 
     @Override
