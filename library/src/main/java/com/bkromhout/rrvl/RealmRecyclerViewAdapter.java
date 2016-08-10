@@ -104,6 +104,7 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
                             Delta insert = deltas.get(0).getType() == Delta.TYPE.INSERT ? deltas.get(0) : deltas.get(1);
                             Delta delete = deltas.get(0).getType() == Delta.TYPE.DELETE ? deltas.get(0) : deltas.get(1);
                             notifyItemMoved(delete.getOriginal().getPosition(), insert.getRevised().getPosition());
+                            notifyItemChanged(insert.getRevised().getPosition());
                         }
                     }
                 } else {
