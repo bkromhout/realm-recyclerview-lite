@@ -1,5 +1,8 @@
 # realm-recyclerview-lite Changelog
 
+## 3.0.0
+* Updated to support Realm 2.0.2
+
 ## 2.1.2
 * Make "better logic" from 2.1.1 a bit less squirrely 🐿
 
