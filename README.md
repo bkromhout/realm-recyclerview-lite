@@ -40,7 +40,7 @@ dependencies {
     }
 }
 ```
-Please note that at this time, realm-recyclerview-lite has been tested and is verified to work with **Realm 1.1.1**. Don't be afraid to try a newer version of Realm, just be sure to open an issue if you run into problems.
+Please note that at this time, realm-recyclerview-lite has been tested and is verified to work with **Realm 2.0.2**. Don't be afraid to try a newer version of Realm, just be sure to open an issue if you run into problems.
 
 **realm-recyclerview-lite is compatible with Android API Levels >= 11.**
 

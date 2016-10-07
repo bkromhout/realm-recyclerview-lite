@@ -11,7 +11,8 @@ public class SampleApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Realm.setDefaultConfiguration(new RealmConfiguration.Builder(this)
+        Realm.init(this);
+        Realm.setDefaultConfiguration(new RealmConfiguration.Builder()
                 .deleteRealmIfMigrationNeeded()
                 .initialData(new Realm.Transaction() {
                     @Override

@@ -3,9 +3,9 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.0-beta1'
+        classpath 'com.android.tools.build:gradle:2.2.0'
         classpath 'com.novoda:bintray-release:0.3.4' // clean build bintrayUpload -PdryRun={true|false}
-        classpath "io.realm:realm-gradle-plugin:1.1.1"
+        classpath "io.realm:realm-gradle-plugin:2.0.2"
     }
 }
 
@@ -26,7 +26,7 @@ ext {
     ARTIFACT_NAME = 'realm-recyclerview-lite'
     DESCRIPTION = 'A RecyclerView for Realm data which supports drag-and-drop, fast scrolling, and multi-select'
     COMPILE_SDK = 24
-    BUILD_TOOLS = '24.0.1'
+    BUILD_TOOLS = '24.0.3'
     IS_UPLOADING = project.getGradle().startParameter.taskNames.any{it.contains('bintrayUpload')}
 }
 
