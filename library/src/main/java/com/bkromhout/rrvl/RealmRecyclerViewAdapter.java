@@ -29,6 +29,7 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
     private RealmRecyclerView rrv = null;
     private RealmChangeListener<RealmResults<T>> changeListener;
     private boolean shouldNotifyOfSingleItemMoves = true;
+    private SelectionChangeListener selectionChangeListener;
 
     protected LayoutInflater inflater;
     protected RealmResults<T> realmResults;
@@ -215,6 +216,7 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
         }
 
         notifyItemChanged(position);
+        if (selectionChangeListener != null) selectionChangeListener.itemSelectionChanged();
     }
 
     /**
@@ -233,6 +235,7 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
         }
 
         notifyItemChanged(position);
+        if (selectionChangeListener != null) selectionChangeListener.itemSelectionChanged();
     }
 
     /**
@@ -273,11 +276,13 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
             selectedPositions.remove(position);
             notifyItemChanged(position);
             lastSelectedPos = -1;
+            if (selectionChangeListener != null) selectionChangeListener.itemSelectionChanged();
             return;
         } else if (lastSelectedPos == -1) {
             // If we don't have a previously selected position, just select this one.
             selectedPositions.add(position);
             notifyItemChanged(position);
+            if (selectionChangeListener != null) selectionChangeListener.itemSelectionChanged();
             return;
         }
 
@@ -294,6 +299,7 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
             notifyItemRangeChanged(position, lastSelectedPos - position);
             lastSelectedPos = -1;
         }
+        if (selectionChangeListener != null) selectionChangeListener.itemSelectionChanged();
     }
 
     /**
@@ -304,6 +310,7 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
         // Add all positions.
         for (int i = 0; i < realmResults.size(); i++) selectedPositions.add(i);
         notifyDataSetChanged();
+        if (selectionChangeListener != null) selectionChangeListener.itemSelectionChanged();
     }
 
     /**
@@ -321,6 +328,7 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
 
         if (oneItemPos != -1) notifyItemChanged(oneItemPos);
         else notifyDataSetChanged();
+        if (selectionChangeListener != null) selectionChangeListener.itemSelectionChanged();
     }
 
     /**
@@ -329,6 +337,15 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
     @SuppressWarnings("WeakerAccess")
     public void notifySelectedItemsChanged() {
         for (Integer i : selectedPositions) notifyItemChanged(i);
+    }
+
+    /**
+     * Set the listener which should be notified when the selection changes.
+     * @param listener The item selection change listener.
+     */
+    @SuppressWarnings("unused")
+    public void setSelectionChangeListener(SelectionChangeListener listener) {
+        this.selectionChangeListener = listener;
     }
 
     /**
@@ -482,6 +499,7 @@ public abstract class RealmRecyclerViewAdapter<T extends RealmModel & UIDModel, 
             else {
                 selectedPositions = new HashSet<>(temp);
                 notifySelectedItemsChanged();
+                if (selectionChangeListener != null) selectionChangeListener.itemSelectionChanged();
             }
         }
     }
