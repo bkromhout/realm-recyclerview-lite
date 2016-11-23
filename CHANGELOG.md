@@ -1,5 +1,8 @@
 # realm-recyclerview-lite Changelog
 
+## 3.1.0
+* Added `SelectionChangeListener` interface so that an implementer can register with a `RealmRecyclerViewAdapter` to be notified when the item selection set changes.
+
 ## 3.0.0
 * Updated to support Realm 2.0.2
 

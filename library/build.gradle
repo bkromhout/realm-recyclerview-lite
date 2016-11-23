@@ -1,6 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'realm-android'
-apply plugin: 'bintray-release'
+apply plugin: 'com.novoda.bintray-release'
 
 android {
     compileSdkVersion COMPILE_SDK
@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         minSdkVersion 11
-        targetSdkVersion 24
+        targetSdkVersion 25
         versionCode VERSION_CODE
         versionName VERSION_NAME
     }
@@ -26,8 +26,8 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:recyclerview-v7:24.2.1'
-    compile 'com.github.bkromhout:java-diff-utils:2.1.0'
+    compile 'com.android.support:recyclerview-v7:25.0.1'
+    compile 'com.github.bkromhout:java-diff-utils:2.1.1'
 }
 
 publish {

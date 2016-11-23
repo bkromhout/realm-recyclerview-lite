@@ -1,11 +1,13 @@
 # realm-recyclerview-lite
 
 realm-recyclerview-lite is an implementation of a RecyclerView which supports Realm data.  
-It is intended to be a slim library which fulfills the functionality requirements I have for my open source Android app, [Minerva][Minerva]; no more, no less. I decided to release it as a library in case others had similar use cases to mine. Take a look at the table of contents for a better idea of what features are offered.
+It is intended to be a slim library which fulfills the functionality requirements I have some of my open source Android apps, such as [Minerva][Minerva]; no more, no less. I decided to release it as a library in case others had similar use cases to mine. Take a look at the table of contents for a better idea of what features are offered.
 
 If you just want to know what's new, [the changelog is here][CHANGELOG].
 
 Please be sure to take a moment to look at the [Origin][Origin] section. You'll find a link to Thorben Primke's [realm-recyclerview][RRV] library, which this library is a heavily reworked derivative of.
+
+And yes...at this point is isn't really "lite" anymore 😉.
 
 #### Table of Contents
 * [Installation](#installation)  
@@ -25,7 +27,7 @@ Please be sure to take a moment to look at the [Origin][Origin] section. You'll 
 Including realm-recyclerview-lite in your app is pretty simple, just make sure that you have the following in your root `build.gradle` file:
 
 ```groovy
-buildscript {
+allprojects {
     repositories {
         jcenter()
     }
@@ -301,6 +303,9 @@ Multi-select support is achieved through these methods on `RealmRecyclerViewAdap
 * `void selectAll()`
 * `void clearSelections()`
 * `void notifySelectedItemsChanged()`
+* `void setSelectionChangeListener(SelectionChangeListener listener)`
+
+The `SelectionChangeListener` interface will allow an implementing class to be notified when the selection set of an adapter changes.
 
 Additionally, there are `void saveInstanceState(Bundle out)` and `void restoreInstanceState(Bundle in)` methods which will save and restore the currently selected positions.
 
