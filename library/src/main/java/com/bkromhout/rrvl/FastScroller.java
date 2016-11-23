@@ -19,7 +19,7 @@ import android.widget.TextView;
 /**
  * Implementation of a fast scroller for our RecyclerView.
  */
-class FastScroller extends LinearLayout {
+public class FastScroller extends LinearLayout {
     private static final int BUBBLE_ANIMATION_DURATION = 100;
     private static final int HANDLE_ANIMATION_DURATION = 100;
     static final int DEFAULT_HANDLE_HIDE_DELAY = 2000;

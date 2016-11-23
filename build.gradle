@@ -65,7 +65,11 @@ allprojects {
             apply plugin: 'maven'
 
             gradle.taskGraph.whenReady { taskGraph ->
-                taskGraph.getAllTasks().find { it.path == ":$project.name:generatePomFileForMavenPublication" }.doLast {
+                def pomTask = taskGraph.getAllTasks().find {
+                    it.path == ":$project.name:generatePomFileForMavenPublication"
+                }
+                if (pomTask == null) return;
+                pomTask.doLast {
                     file("build/publications/maven/pom-default.xml").delete()
                     pom {
                         //noinspection GroovyAssignabilityCheck
